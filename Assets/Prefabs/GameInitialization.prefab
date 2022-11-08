@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3335782581692548122
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3335782581692548132}
+  - component: {fileID: 3335782581692548133}
+  m_Layer: 0
+  m_Name: GameInitialization
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3335782581692548132
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3335782581692548122}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3335782581692548133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3335782581692548122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b12ed07beccadf74381d8d090924044c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapCellPrefabs:
+  - {fileID: 6663546862387265555, guid: 184b89dac0df68b489e18f2726b62c7b, type: 3}
+  - {fileID: 6116537443669599371, guid: a03869e89d42e884c814d00dcdcf59f6, type: 3}
+  - {fileID: 6148673901018602361, guid: d5780218aa685304f91168486ece8612, type: 3}
+  - {fileID: 4814450445100261347, guid: 1832edac78c97904980964ebb4e54438, type: 3}
+  - {fileID: 3232426836720325846, guid: 0dd626003f84a8a41b6b8e2b778b9548, type: 3}
+  - {fileID: 9221650332577157027, guid: ee0905d9eeb29b44396d87ac8deb2383, type: 3}
+  - {fileID: 3476044404492027615, guid: 09102250b5d9bc44fa989cd8df6173ae, type: 3}
+  width: 100
+  height: 60
+  plainCost: 1
+  desertCost: 2
+  snowCost: 2
+  coastCost: 2
+  oceanCost: 3
+  forestCost: 3
+  marshCost: 3
+  landChance: 45
+  coastChance: 30
+  snowChance: 18
+  forestChance: 40
+  desertChance: 40
+  marshChance: 20
+  repeatTimes: 10
+  deathLimit: 2
+  birthLimit: 3
