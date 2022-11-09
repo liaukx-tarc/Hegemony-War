@@ -13,7 +13,9 @@ public class WorldController : MonoBehaviour
     public TextMeshProUGUI turnTxt;
     public Button turnBtn;
 
-    bool haveActiveUnit;
+    static public List<Unit> activeUnitList = new List<Unit>();
+    static public List<Unit> movingUnitList = new List<Unit>();
+
     string activeTxt = "NEXT\nUNIT";
     Color activeColor = new Color(0.08f, 0.3f, 1);
     Color activeSelectColor = new Color(0.08f, 0.6f, 1);
@@ -35,25 +37,14 @@ public class WorldController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        turn = 1;
+        turn = 0;
         playerList.Add(GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>());
         Instantiate(worldInit, gameObject.transform);
     }
 
     void Update()
     {
-        haveActiveUnit = false;
-        
-        foreach (Unit unit in playerList[0].unitList)
-        {
-            if (!unit.isAction)
-            {
-                haveActiveUnit = true;
-                break;
-            }
-        }
-
-        if(haveActiveUnit)
+        if (activeUnitList.Count != 0)
         {
             ColorBlock turnBtnColors = turnBtn.colors;
             turnBtnColors.normalColor = turnBtnColors.pressedColor = turnBtnColors.selectedColor = activeColor;
@@ -76,78 +67,68 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    public void NextTurn()
+    public void TurnStart()
     {
-        if (haveActiveUnit)
+        turn++;
+        turnTxt.text = "TURN " + turn;
+
+        foreach (Unit unit in playerList[0].unitList)
+        {
+            unit.remainMove = unit.movement; //reset unit remain movement
+
+            if (unit.isMoving)
+                movingUnitList.Add(unit);
+            else
+                activeUnitList.Add(unit);
+        }
+    }
+
+    public void TurnBtn()
+    {
+        if (activeUnitList.Count != 0) 
         {
             NextUnit();
         }
 
         else
         {
-            turn++;
-            turnTxt.text = "TURN " + turn;
-            foreach (Unit unit in playerList[0].unitList)
+            foreach (Unit unit in movingUnitList)
             {
-                unit.isAction = false;
-                unit.remainMove = unit.movement;
-                if (unit.isMoving)
-                    unit.startMove = true;
+                unit.startMove = true;
             }
+
+            TurnStart();
         }
     }
 
+
+
     public void NextUnit()
     {
-        if (haveActiveUnit)
+        playerList[0].selectedBuilding = null;
+        buildingUI.SetActive(false);
+
+        foreach (Unit unit in activeUnitList)
         {
-            //close the ui of previous unit
-            if (playerList[0].selectedUnit != null && playerList[0].selectedUnit.isAction)
+            if (unit != playerList[0].selectedUnit &&
+                playerList[0].unitList.IndexOf(unit) > playerList[0].unitList.IndexOf(playerList[0].selectedUnit)) //Make sure it is going the next unit
             {
-                playerList[0].selectedUnit = null;
-                unitUI.SetActive(false);
-            }
-                
-
-            List<Unit> activeUnit = new List<Unit>();
-
-            foreach (Unit unit in playerList[0].unitList)
-            {
-                if (!unit.isAction)
-                {
-                    activeUnit.Add(unit);
-                }
+                playerList[0].selectedUnit = unit;
+                break;
             }
 
-            foreach (Unit unit in activeUnit)
+            else if (playerList[0].unitList.IndexOf(unit) == activeUnitList.Count - 1)
             {
-                if (playerList[0].selectedUnit != unit &&
-                        playerList[0].unitList.IndexOf(unit) > playerList[0].unitList.IndexOf(playerList[0].selectedUnit)) //Make sure it is going the next unit
-                {
-                    playerList[0].selectedBuilding = null;
-                    buildingUI.SetActive(false);
-
-                    playerList[0].selectedUnit = unit;
-                    unitUI.SetActive(true);
-                    unitName.text = playerList[0].selectedUnit.name;
-                    break;
-                }
-
-                else if (playerList[0].unitList.IndexOf(unit) == playerList[0].unitList.IndexOf(activeUnit[activeUnit.Count - 1]))
-                {
-                    playerList[0].selectedBuilding = null;
-                    buildingUI.SetActive(false);
-
-                    playerList[0].selectedUnit = activeUnit[0];
-                    unitUI.SetActive(true);
-                    unitName.text = playerList[0].selectedUnit.name;
-                    break;
-                }
+                playerList[0].selectedUnit = activeUnitList[0]; //go back to first active unit in the list
+                break;
             }
+        }
 
-            if (playerList[0].selectedUnit != null)
-                cameraScirpt.MoveCamera(playerList[0].selectedUnit.currentPos);
-                
+        if (playerList[0].selectedUnit != null)
+        {
+            unitName.text = playerList[0].selectedUnit.name;
+            unitUI.SetActive(true);
+            cameraScirpt.MoveCamera(playerList[0].selectedUnit.currentPos);
         }
     }
 

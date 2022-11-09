@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CameraControl : MonoBehaviour
@@ -82,8 +83,13 @@ public class CameraControl : MonoBehaviour
 
             moveCount++;
 
+            Debug.Log(moveCount + " , " + maxCount);
+
             if (moveCount == maxCount)
+            {
                 isMoving = false;
+            }
+                
         }
 
         else
@@ -266,8 +272,75 @@ public class CameraControl : MonoBehaviour
 
     public void MoveCamera(MapCell targetCell)
     {
-        maxCount = (int)Mathf.Max(Mathf.Abs(displayMap[25, 16].position.x - targetCell.position.x), Mathf.Abs(displayMap[25, 16].position.y - targetCell.position.y));
+        //foreach (MapCell cell in displayMap)
+        //{
+        //    if (cell != null)
+        //    {
+        //        cell.GetComponent<Renderer>().enabled = false;
+        //        cell.GetComponent<Collider>().enabled = false;
 
+        //        foreach (Unit unit in cell.units)
+        //        {
+        //            unit.GetComponent<Renderer>().enabled = false;
+        //            unit.GetComponent<Collider>().enabled = false;
+        //        }
+
+        //        if (cell.building != null)
+        //        {
+        //            cell.building.GetComponent<Renderer>().enabled = false;
+        //            cell.building.GetComponent<Collider>().enabled = false;
+        //        }
+        //    }
+
+        //}
+
+        //for (int w = -25; w < 25; w++)
+        //{
+        //    for (int h = -16; h < 16; h++)
+        //    {
+        //        int x = (int)targetCell.position.x + w;
+        //        int y = (int)targetCell.position.y + h;
+
+        //        if (x < 0)
+        //            x += WorldController.map.GetLength(0);
+        //        else if (x >= WorldController.map.GetLength(0))
+        //            x -= WorldController.map.GetLength(0);
+
+        //        if (y >= 0 && y < WorldController.map.GetLength(1))
+        //        {
+        //            MapCell cell = WorldController.map[x, y];
+
+        //            cell.transform.position = new Vector3((w * 2f) - (y % 2), 0.0f, h * -1.75f);
+        //            cell.GetComponent<Renderer>().enabled = true;
+        //            cell.GetComponent<Collider>().enabled = true;
+
+
+        //            foreach (Unit unit in cell.units)
+        //            {
+        //                unit.transform.position = cell.transform.position + new Vector3(0, 1.5f, 0);
+        //                unit.GetComponent<Renderer>().enabled = true;
+        //                unit.GetComponent<Collider>().enabled = true;
+        //            }
+
+        //            if (cell.building != null)
+        //            {
+        //                cell.building.transform.position = cell.transform.position + new Vector3(0, 1.5f, 0);
+        //                cell.building.GetComponent<Renderer>().enabled = true;
+        //                cell.building.GetComponent<Collider>().enabled = true;
+        //            }
+
+        //            displayMap[w + 25, h + 16] = cell;
+        //        }
+        //    }
+        //}
+
+        //this.transform.position = new Vector3(this.transform.position.x, 11, -20);
+        //maxUp = 0 + this.transform.position.y;
+        //maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
+        //camPosY = targetCell.position.y * 1.75f - this.transform.position.z;
+
+        moveCount = 0;
+        maxCount = (int)Mathf.Max(Mathf.Abs(displayMap[25, 16].position.x - targetCell.position.x), Mathf.Abs(displayMap[25, 16].position.y - targetCell.position.y));
         if (maxCount > 0)
             isMoving = true;
         else
@@ -281,9 +354,12 @@ public class CameraControl : MonoBehaviour
             mapMove.x = (this.transform.position.x - targetPos.x) / maxCount;
 
         if (this.transform.position.z + 20 - targetPos.y != 0)
-            mapMove.y = (this.transform.position.z + 20 - targetPos.y) / maxCount;
+            mapMove.y = (this.transform.position.z + 10 - targetPos.y) / maxCount;
 
-        moveCount = 0;
+        this.transform.position = new Vector3(this.transform.position.x, 11, -20);
+        maxUp = 0 + this.transform.position.y;
+        maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
+        camPosY = targetCell.position.y * 1.75f - this.transform.position.z;
     }
 
     void MapCulling(int direction)

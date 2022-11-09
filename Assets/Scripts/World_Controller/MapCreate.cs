@@ -29,7 +29,6 @@ public class MapCreate : MonoBehaviour
         {
             for (int h = 0; h < height; h++)
             {
-                Debug.Log(mapCellPrefabs[mapTypeList[w, h]]);
                 GameObject temp = Instantiate(mapCellPrefabs[mapTypeList[w, h]], new Vector3((w * 2f) - (h % 2f), 0.0f, h * -1.75f),
                     Quaternion.Euler(90, 0, 0), this.transform.parent.gameObject.transform);
                 temp.name = MapCellName + w.ToString() + Multiply + h.ToString();

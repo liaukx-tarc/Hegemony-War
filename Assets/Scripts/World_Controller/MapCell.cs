@@ -16,7 +16,7 @@ public enum MapTypeName
 public class MapCell : MonoBehaviour
 {
     //Map Information
-    public Vector2 position;
+    public Vector2 position; //the position of the map cell in the whole map.
     public GameObject building;
     public CubePosition cubePosition;
     public MapCell[] neighborCell;
