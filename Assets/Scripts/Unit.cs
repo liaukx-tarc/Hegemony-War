@@ -46,8 +46,6 @@ public class Unit : MonoBehaviour
                 if (remainMove >= path[0].cost)
                 {
                     currentPath = path[0];
-                    currentPath.GetComponent<Renderer>().material.color = Color.red;
-
                     moveDistance = currentPath.transform.position - currentPos.transform.position;
                     moveCount = 0;
                     isMoving = true;
@@ -67,10 +65,8 @@ public class Unit : MonoBehaviour
             {
                 if (!isAction)
                 {
-                    currentPos.GetComponent<Renderer>().material.color = currentPos.color;
                     currentPos.units.Remove(this);
                     currentPos = currentPath;
-                    currentPos.GetComponent<Renderer>().material.color = Color.red;
                     currentPos.units.Add(this);
                     path.Remove(currentPath);
 
@@ -89,14 +85,12 @@ public class Unit : MonoBehaviour
                         }
 
                         isMoving = false;
-                        currentPos.GetComponent<Renderer>().material.color = currentPos.color;
                     }
 
                     else if (path.Count > 0)
                     {
                         if (remainMove >= path[0].cost)
                         {
-                            currentPath.GetComponent<Renderer>().material.color = currentPath.color;
                             currentPath = path[0];
                             remainMove -= currentPath.cost;
                             moveDistance = currentPath.transform.position - currentPos.transform.position;
@@ -107,11 +101,6 @@ public class Unit : MonoBehaviour
 
                         else
                         {
-                            foreach (MapCell cell in path)
-                            {
-                                cell.GetComponent<Renderer>().material.color = cell.color;
-                            }
-
                             isAction = true;
                         }
                     }
@@ -178,11 +167,6 @@ public class Unit : MonoBehaviour
                         if (openList[i].fCost < currentNode.fCost || (openList[i].fCost == currentNode.fCost && openList[i].gCost > currentNode.gCost))
                         {
                             currentNode = openList[i];
-                            foreach (MapCell cell in clearList)
-                            {
-                                cell.GetComponent<Renderer>().material.color = cell.color;
-                            }
-                            currentNode.mapCell.GetComponent<Renderer>().material.color = new Color(1, 1, 0);
                         }
 
                     }
@@ -205,11 +189,6 @@ public class Unit : MonoBehaviour
 
                         path.Add(temp.mapCell);
                         path.Reverse();
-
-                        foreach (MapCell cell in path)
-                        {
-                            cell.GetComponent<Renderer>().material.color = Color.grey;
-                        }
 
                         yield break;
                     }
@@ -249,7 +228,6 @@ public class Unit : MonoBehaviour
                                             {
                                                 openList.Remove(node);
                                                 openList.Add(neighbourNode);
-                                                neighbourNode.mapCell.GetComponent<Renderer>().material.color = Color.blue;
                                                 clearList.Add(neighbourNode.mapCell);
                                             }
                                             haveSame = true;
@@ -260,7 +238,6 @@ public class Unit : MonoBehaviour
                                     if (!haveSame)
                                     {
                                         openList.Add(neighbourNode);
-                                        neighbourNode.mapCell.GetComponent<Renderer>().material.color = Color.blue;
                                         clearList.Add(neighbourNode.mapCell);
                                     }
                                 }

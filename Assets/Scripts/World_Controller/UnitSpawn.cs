@@ -15,7 +15,7 @@ public class UnitSpawn : MonoBehaviour
     {
         for (int i = 0; i < unitNumber; i++)
         {
-            tempUnitList.Add(Instantiate(unit, new Vector3(0, 1.5f, 0), Quaternion.identity));
+            tempUnitList.Add(Instantiate(unit, new Vector3(0, 1.2f, 0), Quaternion.identity));
             tempUnitList[i].name = "Unit " + (i + 1);
         }
     }
@@ -38,7 +38,7 @@ public class UnitSpawn : MonoBehaviour
 
                 WorldController.playerList[0].GetComponent<PlayerController>().unitList.Add(temp.GetComponent<Unit>());
                 temp.GetComponent<Unit>().currentPos = WorldController.map[(int)tempPos.x, (int)tempPos.y];
-                temp.transform.position = WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.5f, 0);
+                temp.transform.position = WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.2f, 0);
                 WorldController.map[(int)tempPos.x, (int)tempPos.y].units.Add(temp.GetComponent<Unit>());
             }
 

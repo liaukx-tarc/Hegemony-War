@@ -26,9 +26,6 @@ public class MapCell : MonoBehaviour
     public int connectGroupCoast;
     public int connectGroupSea;
 
-    //Test
-    public Color color;
-
     //Unit
     public List<Unit> units;
 

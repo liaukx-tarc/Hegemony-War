@@ -16,13 +16,21 @@ public class PlayerController : MonoBehaviour
     public GameObject buildingUI;
     public TextMeshProUGUI buildingName;
 
+    //Unit select
     public Unit selectedUnit;
+    public GameObject selectionList;
     public GameObject selectedBuilding;
+    public GameObject whiteSelectCell;
+    public GameObject yellowSelectCell;
+    public GameObject redSelectCell;
+    public GameObject greenSelectCell;
+    public List<GameObject> blueSelectCellList;
     MapCell rightSelectedCell;
     MapCell leftSelectedCell;
-    static public MapCell previousSelectedCell;
+    MapCell previousSelectedCell;
 
     List<MapCell> buildingBlock = new List<MapCell>();
+    List<GameObject> previousSelectedList = new List<GameObject>();
     bool isBuildingSelect = false;
     static public int buildNum = 0;
     int buildingRange = 0;
@@ -43,54 +51,78 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(ray, out hitInfo, 100, LayerMask.GetMask(MapTag)) &&//Raycast
         !EventSystem.current.IsPointerOverGameObject())//Check has block by UI or not
         {
-            if (previousSelectedCell != null)
-                previousSelectedCell.GetComponent<Renderer>().material.color = previousSelectedCell.color;
-
-            foreach (MapCell cell in buildingBlock)
+            if (previousSelectedCell == null || previousSelectedCell.gameObject != hitInfo.collider.gameObject)
             {
-                cell.GetComponent<Renderer>().material.color = cell.color;
-            }
-            buildingBlock.Clear();
-
-            if(isBuildingSelect || isMovingSelect)
-            {
-                MapCell select = hitInfo.collider.GetComponent<MapCell>();
-                
-                if (select.cost != 0 && select.building == null)
+                if (isBuildingSelect || isMovingSelect)
                 {
-                    select.GetComponent<Renderer>().material.color = Color.yellow;
-                    
-                    if(isBuildingSelect)
-                    {
-                        buildingBlock = select.CheckCellInRange(buildingRange);
+                    MapCell select = hitInfo.collider.GetComponent<MapCell>();
 
-                        foreach (MapCell cell in buildingBlock)
+                    if (select.cost != 0 && select.building == null)
+                    {
+                        redSelectCell.transform.parent = selectionList.transform;
+                        redSelectCell.SetActive(false);
+
+                        yellowSelectCell.SetActive(true);
+                        yellowSelectCell.transform.position = select.transform.position;
+                        yellowSelectCell.transform.parent = select.transform;
+
+
+                        if (isBuildingSelect)
                         {
-                            cell.GetComponent<Renderer>().material.color = Color.gray;
+                            buildingBlock = select.CheckCellInRange(buildingRange);
+
+                            for (int i = 0; i < buildingBlock.Count; i++)
+                            {
+                                blueSelectCellList[i].SetActive(true);
+                                blueSelectCellList[i].transform.position = buildingBlock[i].transform.position;
+                                blueSelectCellList[i].transform.parent = buildingBlock[i].transform;
+                                previousSelectedList.Add(blueSelectCellList[i]);
+                            }
                         }
+                    }
+
+                    else
+                    {
+                        yellowSelectCell.transform.parent = selectionList.transform;
+                        yellowSelectCell.SetActive(false);
+
+                        redSelectCell.SetActive(true);
+                        redSelectCell.transform.position = select.transform.position;
+                        redSelectCell.transform.parent = select.transform;
                     }
 
                     previousSelectedCell = select;
                 }
-
-                else
-                {
-                    hitInfo.collider.GetComponent<Renderer>().material.color = Color.red;
-                    previousSelectedCell = select;
-                }
-            }          
-
+            }
+                   
             //Left click
             if (Input.GetMouseButtonDown(0) && !Input.GetMouseButton(1))
             {
-                if (leftSelectedCell != null)
-                    leftSelectedCell.GetComponent<Renderer>().material.color = leftSelectedCell.color;
-                hitInfo.collider.GetComponent<Renderer>().material.color = Color.red;
+                yellowSelectCell.transform.parent = selectionList.transform;
+                yellowSelectCell.SetActive(false);
+                redSelectCell.transform.parent = selectionList.transform;
+                redSelectCell.SetActive(false);
+
+                whiteSelectCell.SetActive(true);
+                whiteSelectCell.transform.position = hitInfo.transform.position;
+                whiteSelectCell.transform.parent = hitInfo.transform;
+
                 leftSelectedCell = hitInfo.collider.gameObject.GetComponent<MapCell>();
 
                 //Build
                 if (isBuildingSelect && leftSelectedCell.cost != 0 && !selectedUnit.isMoving)
                 {
+                    foreach (GameObject cell in previousSelectedList)
+                    {
+                        cell.transform.parent = selectionList.transform;
+                        cell.SetActive(false); 
+                    }
+                        
+                    previousSelectedList.Clear();
+
+                    yellowSelectCell.transform.parent = selectionList.transform;
+                    yellowSelectCell.SetActive(false);
+
                     if (leftSelectedCell.building == null)
                     {
                         selectedUnit.CheckPath(leftSelectedCell);
@@ -99,14 +131,7 @@ public class PlayerController : MonoBehaviour
                         selectedUnit.targetPos = leftSelectedCell;
                     }
 
-                    foreach (MapCell cell in buildingBlock)
-                    {
-                        cell.GetComponent<Renderer>().material.color = cell.color;
-                    }
-
                     isBuildingSelect = false;
-                    previousSelectedCell.GetComponent<Renderer>().material.color = previousSelectedCell.color;
-                    previousSelectedCell = null;
                 }
 
                 //Move
@@ -117,8 +142,6 @@ public class PlayerController : MonoBehaviour
                     selectedUnit.targetPos = leftSelectedCell;
 
                     isMovingSelect = false;
-                    previousSelectedCell.GetComponent<Renderer>().material.color = previousSelectedCell.color;
-                    previousSelectedCell = null;
                 }
 
                 //Select Unit
@@ -172,33 +195,36 @@ public class PlayerController : MonoBehaviour
                 {
                     if (Physics.Raycast(ray, out hitInfo, 1000, LayerMask.GetMask(MapTag)))
                     {
-                        if (hitInfo.collider.gameObject != selectedUnit.currentPos && //check is the unit's currentPos or not
-                            hitInfo.collider.GetComponent<MapCell>().cost != 0) //the mapcell not can't move
+                        if (hitInfo.collider.gameObject != selectedUnit.currentPos)//check is the unit's currentPos or not 
                         {
-                            if (rightSelectedCell != null)
+                            if (rightSelectedCell == null || rightSelectedCell.gameObject != hitInfo.collider.gameObject)
                             {
-                                if (rightSelectedCell.gameObject != hitInfo.collider.gameObject)
+                                if (hitInfo.collider.GetComponent<MapCell>().cost != 0)//the mapcell not can't move
                                 {
-                                    rightSelectedCell.GetComponent<Renderer>().material.color = rightSelectedCell.color;
-                                    rightSelectedCell = hitInfo.collider.gameObject.GetComponent<MapCell>();
-                                    rightSelectedCell.GetComponent<Renderer>().material.color = Color.green;
+                                    redSelectCell.transform.parent = selectionList.transform;
+                                    redSelectCell.SetActive(false);
 
-                                    foreach (MapCell cell in WorldController.map)
-                                    {
-                                        cell.gameObject.GetComponent<Renderer>().material.color = cell.GetComponent<MapCell>().color;
-                                    }
-                                    rightSelectedCell.GetComponent<Renderer>().material.color = Color.green;
+                                    greenSelectCell.SetActive(true);
+                                    greenSelectCell.transform.position = hitInfo.transform.position;
+                                    greenSelectCell.transform.parent = hitInfo.transform;
+                                    rightSelectedCell = hitInfo.collider.gameObject.GetComponent<MapCell>();
+
                                     selectedUnit.CheckPath(rightSelectedCell);
+                                }
+
+                                else
+                                {
+                                    greenSelectCell.transform.parent = selectionList.transform;
+                                    greenSelectCell.SetActive(false);
+
+                                    redSelectCell.SetActive(true);
+                                    redSelectCell.transform.position = hitInfo.transform.position;
+                                    redSelectCell.transform.parent = hitInfo.transform;
                                 }
                             }
 
-                            else
-                            {
-                                rightSelectedCell = hitInfo.collider.gameObject.GetComponent<MapCell>();
-                                rightSelectedCell.GetComponent<Renderer>().material.color = Color.green;
+                            
 
-                                selectedUnit.CheckPath(rightSelectedCell);
-                            }
                         }
                     }
                 }
@@ -207,7 +233,11 @@ public class PlayerController : MonoBehaviour
                 {
                     if (rightSelectedCell != null)
                     {
-                        rightSelectedCell.GetComponent<Renderer>().material.color = rightSelectedCell.color;
+                        greenSelectCell.transform.parent = selectionList.transform;
+                        greenSelectCell.SetActive(false);
+                        redSelectCell.transform.parent = selectionList.transform;
+                        redSelectCell.SetActive(false);
+
                         selectedUnit.startMove = true;
                         selectedUnit.targetPos = rightSelectedCell;
                     }
@@ -216,17 +246,26 @@ public class PlayerController : MonoBehaviour
 
             else if(Input.GetMouseButtonUp(1))
             {
+                foreach (GameObject cell in previousSelectedList)
+                {
+                    cell.transform.parent = selectionList.transform;
+                    cell.SetActive(false);
+                }
+
+                previousSelectedList.Clear();
+
+                yellowSelectCell.transform.parent = selectionList.transform;
+                yellowSelectCell.SetActive(false);
+
                 isBuildingSelect = false;
             }
         }
 
+        //Testing Function
         if(Input.GetKeyDown(KeyCode.Space))
         {
-            foreach (MapCell cell in WorldController.map)
-            {
-                cell.gameObject.GetComponent<Renderer>().material.color = cell.GetComponent<MapCell>().color;
-            }
-
+            whiteSelectCell.transform.parent = selectionList.transform;
+            whiteSelectCell.SetActive(false);
             selectedUnit = null;
             rightSelectedCell = null;
             unitUI.SetActive(false);

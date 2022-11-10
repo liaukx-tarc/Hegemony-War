@@ -30,7 +30,7 @@ public class MapCreate : MonoBehaviour
             for (int h = 0; h < height; h++)
             {
                 GameObject temp = Instantiate(mapCellPrefabs[mapTypeList[w, h]], new Vector3((w * 2f) - (h % 2f), 0.0f, h * -1.75f),
-                    Quaternion.Euler(90, 0, 0), this.transform.parent.gameObject.transform);
+                    Quaternion.Euler(0, 0, 0), this.transform.parent.gameObject.transform);
                 temp.name = MapCellName + w.ToString() + Multiply + h.ToString();
 
                 MapCell tempMapCell = temp.GetComponent<MapCell>();
@@ -66,7 +66,6 @@ public class MapCreate : MonoBehaviour
                         break;
                 }
 
-                tempMapCell.GetComponent<Renderer>().material.color = tempMapCell.color;
                 WorldController.map[w, h] = temp.GetComponent<MapCell>();
             }
         }
