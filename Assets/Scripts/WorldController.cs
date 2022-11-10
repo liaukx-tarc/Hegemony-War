@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class WorldController : MonoBehaviour
 {
     static public int turn;
-    static public List<PlayerController> playerList = new List<PlayerController>();
+    static public List<Player> playerList = new List<Player>();
     static public MapCell[,] map;
 
     public TextMeshProUGUI turnTxt;
@@ -34,11 +34,13 @@ public class WorldController : MonoBehaviour
 
     public GameObject worldInit;
 
+    bool allUnitMove = false;
+
     // Start is called before the first frame update
     void Start()
     {
         turn = 0;
-        playerList.Add(GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>());
+        playerList.Add(GameObject.FindGameObjectWithTag("Player").GetComponent<Player>());
         Instantiate(worldInit, gameObject.transform);
     }
 
@@ -65,6 +67,34 @@ public class WorldController : MonoBehaviour
             turnBtn.GetComponentInChildren<TextMeshProUGUI>().text = nextTxt;
             turnBtn.GetComponentInChildren<TextMeshProUGUI>().color = Color.black;
         }
+    }
+
+    IEnumerator endTurnCoroutine;
+
+    public void NextTurn()
+    {
+        endTurnCoroutine = EndTurn();
+        StartCoroutine(endTurnCoroutine);
+        StopCoroutine(endTurnCoroutine);
+    }
+
+    IEnumerator EndTurn()
+    {
+        allUnitMove = true;
+
+        foreach (Unit unit in playerList[0].unitList /*current player*/)
+        {
+            if(!unit.isAction)
+            {
+                allUnitMove = false;
+                break;
+            }
+        }
+
+        if (!allUnitMove)
+            yield return null;
+        else
+            TurnStart();
     }
 
     public void TurnStart()
@@ -97,7 +127,7 @@ public class WorldController : MonoBehaviour
                 unit.startMove = true;
             }
 
-            TurnStart();
+            NextTurn();
         }
     }
 
@@ -105,30 +135,32 @@ public class WorldController : MonoBehaviour
 
     public void NextUnit()
     {
-        playerList[0].selectedBuilding = null;
+        HumanPlayer player = (HumanPlayer)playerList[0];
+
+        player.selectedBuilding = null;
         buildingUI.SetActive(false);
 
         foreach (Unit unit in activeUnitList)
         {
-            if (unit != playerList[0].selectedUnit &&
-                playerList[0].unitList.IndexOf(unit) > playerList[0].unitList.IndexOf(playerList[0].selectedUnit)) //Make sure it is going the next unit
+            if (unit != player.selectedUnit &&
+                player.unitList.IndexOf(unit) > player.unitList.IndexOf(player.selectedUnit)) //Make sure it is going the next unit
             {
-                playerList[0].selectedUnit = unit;
+                player.selectedUnit = unit;
                 break;
             }
 
-            else if (playerList[0].unitList.IndexOf(unit) == activeUnitList.Count - 1)
+            else if (player.unitList.IndexOf(unit) == activeUnitList.Count - 1)
             {
-                playerList[0].selectedUnit = activeUnitList[0]; //go back to first active unit in the list
+                player.selectedUnit = activeUnitList[0]; //go back to first active unit in the list
                 break;
             }
         }
 
-        if (playerList[0].selectedUnit != null)
+        if (player.selectedUnit != null)
         {
-            unitName.text = playerList[0].selectedUnit.name;
+            unitName.text = player.selectedUnit.name;
             unitUI.SetActive(true);
-            cameraScirpt.MoveCamera(playerList[0].selectedUnit.currentPos);
+            cameraScirpt.MoveCamera(player.selectedUnit.currentPos);
         }
     }
 

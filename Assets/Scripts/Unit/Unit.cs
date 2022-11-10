@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    //Player
+    public Player player;
+
     public bool isAction = false;
     public MapCell currentPos;
 
@@ -32,11 +35,6 @@ public class Unit : MonoBehaviour
         remainMove = movement;
     }
 
-    private void FixedUpdate()
-    {
-        
-    }
-
     private void Update()
     {
         if(startMove)
@@ -55,7 +53,11 @@ public class Unit : MonoBehaviour
                 }
 
                 else
+                {
                     isAction = true;
+                    WorldController.activeUnitList.Remove(this);
+                }
+                    
             }      
         }
 
@@ -78,13 +80,15 @@ public class Unit : MonoBehaviour
                                 new Vector3(targetPos.transform.position.x, targetPos.transform.position.y + 1.0f, targetPos.transform.position.z),
                                 Quaternion.identity);
                             building.transform.parent = targetPos.transform;
-                            building.name = "Building" + " " + ++PlayerController.buildNum;
+                            building.name = "Building" + " " + ++player.buildNum;
                             targetPos.building = building;
 
                             isBuilding = false;
                         }
 
                         isMoving = false;
+                        isAction=false;
+                        WorldController.activeUnitList.Add(this);
                     }
 
                     else if (path.Count > 0)
@@ -102,6 +106,7 @@ public class Unit : MonoBehaviour
                         else
                         {
                             isAction = true;
+                            WorldController.activeUnitList.Remove(this);
                         }
                     }
                 }
@@ -140,8 +145,6 @@ public class Unit : MonoBehaviour
         int seachcount = 0;
 
         //Test
-        List<MapCell> clearList = new List<MapCell>();
-        Debug.Log(startNode.mapCell.connectGroupCoast + " + " + targetPos.connectGroupCoast);
         if(startNode.mapCell.connectGroupCoast == targetPos.connectGroupCoast)
         {
             do
@@ -228,7 +231,6 @@ public class Unit : MonoBehaviour
                                             {
                                                 openList.Remove(node);
                                                 openList.Add(neighbourNode);
-                                                clearList.Add(neighbourNode.mapCell);
                                             }
                                             haveSame = true;
                                             break;
@@ -238,7 +240,6 @@ public class Unit : MonoBehaviour
                                     if (!haveSame)
                                     {
                                         openList.Add(neighbourNode);
-                                        clearList.Add(neighbourNode.mapCell);
                                     }
                                 }
                             }

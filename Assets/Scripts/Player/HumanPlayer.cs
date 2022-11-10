@@ -4,9 +4,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class PlayerController : MonoBehaviour
+public class HumanPlayer : Player
 {
-    public List<Unit> unitList = new List<Unit>();
     const string MapTag = "Map";
 
     //UI
@@ -32,12 +31,12 @@ public class PlayerController : MonoBehaviour
     List<MapCell> buildingBlock = new List<MapCell>();
     List<GameObject> previousSelectedList = new List<GameObject>();
     bool isBuildingSelect = false;
-    static public int buildNum = 0;
+
     int buildingRange = 0;
 
     bool isMovingSelect = false;
 
-    // Start is called before the first frame update
+    // Update is called once per frame
     void Update()
     {
         SelectMapCell();
@@ -94,7 +93,7 @@ public class PlayerController : MonoBehaviour
                     previousSelectedCell = select;
                 }
             }
-                   
+
             //Left click
             if (Input.GetMouseButtonDown(0) && !Input.GetMouseButton(1))
             {
@@ -115,9 +114,9 @@ public class PlayerController : MonoBehaviour
                     foreach (GameObject cell in previousSelectedList)
                     {
                         cell.transform.parent = selectionList.transform;
-                        cell.SetActive(false); 
+                        cell.SetActive(false);
                     }
-                        
+
                     previousSelectedList.Clear();
 
                     yellowSelectCell.transform.parent = selectionList.transform;
@@ -135,7 +134,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //Move
-                else if(isMovingSelect && leftSelectedCell.cost != 0 && !selectedUnit.isMoving)
+                else if (isMovingSelect && leftSelectedCell.cost != 0 && !selectedUnit.isMoving)
                 {
                     selectedUnit.CheckPath(leftSelectedCell);
                     selectedUnit.startMove = true;
@@ -148,20 +147,20 @@ public class PlayerController : MonoBehaviour
                 else if (hitInfo.collider.GetComponent<MapCell>().units.Count != 0) //Check has unit or not
                 {
                     MapCell mapCell = hitInfo.collider.GetComponent<MapCell>();
-                    
-                    if(selectedUnit == null || selectedUnit != mapCell.units[0])
+
+                    if (selectedUnit == null || selectedUnit != mapCell.units[0])
                     {
                         SelectUnit(mapCell.units[0]);
                     }
-                    
+
                     else
                     {
-                        if(mapCell.units.Count > mapCell.units.IndexOf(selectedUnit) + 1)
+                        if (mapCell.units.Count > mapCell.units.IndexOf(selectedUnit) + 1)
                         {
                             SelectUnit(mapCell.units[mapCell.units.IndexOf(selectedUnit) + 1]);
                         }
 
-                        else if(mapCell.building != null)
+                        else if (mapCell.building != null)
                         {
                             SelectBuilding(mapCell.building);
                         }
@@ -187,9 +186,9 @@ public class PlayerController : MonoBehaviour
         }
 
         //Right Click
-        if(selectedUnit != null && (!selectedUnit.isMoving || selectedUnit.isAction))//is selecting unit
+        if (selectedUnit != null && (!selectedUnit.isMoving || selectedUnit.isAction))//is selecting unit
         {
-            if(!isBuildingSelect)
+            if (!isBuildingSelect)
             {
                 if (Input.GetMouseButton(1) || Input.GetMouseButtonDown(1))
                 {
@@ -223,7 +222,7 @@ public class PlayerController : MonoBehaviour
                                 }
                             }
 
-                            
+
 
                         }
                     }
@@ -244,7 +243,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            else if(Input.GetMouseButtonUp(1))
+            else if (Input.GetMouseButtonUp(1))
             {
                 foreach (GameObject cell in previousSelectedList)
                 {
@@ -262,7 +261,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //Testing Function
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             whiteSelectCell.transform.parent = selectionList.transform;
             whiteSelectCell.SetActive(false);
@@ -271,8 +270,6 @@ public class PlayerController : MonoBehaviour
             unitUI.SetActive(false);
         }
     }
-
-    
 
     public void SelectUnit(Unit unit)
     {
@@ -296,8 +293,13 @@ public class PlayerController : MonoBehaviour
 
     public void Skip()
     {
-        if(selectedUnit != null)
+        if (selectedUnit != null)
+        {
             selectedUnit.isAction = true;
+            WorldController.activeUnitList.Remove(selectedUnit);
+            worldController.NextUnit();
+        }
+            
     } //Unit Skip Button
 
     public void Move()

@@ -5,24 +5,19 @@ using UnityEngine;
 public class UnitSpawn : MonoBehaviour
 {
     public GameObject unit;
-    public Camera cam;
     public int unitNumber;
-    List<GameObject> tempUnitList = new List<GameObject>();
-    bool test = false;
-
-    // Start is called before the first frame update
-    void Start()
+    List<GameObject> tempUnitList = new List<GameObject>(); 
+    public void GenerateUnit()
     {
         for (int i = 0; i < unitNumber; i++)
         {
             tempUnitList.Add(Instantiate(unit, new Vector3(0, 1.2f, 0), Quaternion.identity));
             tempUnitList[i].name = "Unit " + (i + 1);
         }
-    }
 
-    public void GenerateUnit()
-    {
-        if (WorldController.playerList[0].GetComponent<PlayerController>())
+        Player player = WorldController.playerList[0].GetComponent<Player>();
+
+        if (player != null)
         {
             foreach (GameObject temp in tempUnitList)
             {
@@ -36,16 +31,21 @@ public class UnitSpawn : MonoBehaviour
                 } while (WorldController.map[(int)tempPos.x, (int)tempPos.y].cost == 0 || WorldController.map[(int)tempPos.x, (int)tempPos.y].mapType == (int)MapTypeName.Coast ||
                              WorldController.map[(int)tempPos.x, (int)tempPos.y].mapType == (int)MapTypeName.Ocean);
 
-                WorldController.playerList[0].GetComponent<PlayerController>().unitList.Add(temp.GetComponent<Unit>());
-                temp.GetComponent<Unit>().currentPos = WorldController.map[(int)tempPos.x, (int)tempPos.y];
+                Unit unit = temp.GetComponent<Unit>();
+
+                player.unitList.Add(unit);
+                unit.currentPos = WorldController.map[(int)tempPos.x, (int)tempPos.y];
                 temp.transform.position = WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.2f, 0);
-                WorldController.map[(int)tempPos.x, (int)tempPos.y].units.Add(temp.GetComponent<Unit>());
+                WorldController.map[(int)tempPos.x, (int)tempPos.y].units.Add(unit);
+                unit.player = player;
             }
 
-            cam.GetComponent<CameraControl>().StartCamera(tempUnitList[0].GetComponent<Unit>());
+            GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraControl>().StartCamera(tempUnitList[0].GetComponent<Unit>());
 
         }
 
-        GetComponent<WorldController>().TurnStart();//inti complete start turn
+        GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().TurnStart();//inti complete start turn
+
+        Destroy(this.gameObject);
     }
 }

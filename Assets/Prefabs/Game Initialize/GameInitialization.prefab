@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 3335782581692548132}
   - component: {fileID: 3335782581692548133}
+  - component: {fileID: -9106206966931811039}
+  - component: {fileID: -3178621855829351332}
   m_Layer: 0
   m_Name: GameInitialization
   m_TagString: Untagged
@@ -70,3 +72,32 @@ MonoBehaviour:
   repeatTimes: 10
   deathLimit: 2
   birthLimit: 3
+--- !u!114 &-9106206966931811039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3335782581692548122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 530ee0466b2f9af449657e61ec53093e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aiPlayer: {fileID: 5572738954788224876, guid: fba614f97a3a6c643b2c9f34c72915d7,
+    type: 3}
+  aiPlayerNum: 3
+--- !u!114 &-3178621855829351332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3335782581692548122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3509d31dedc9444e95a6a911b7933b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unit: {fileID: 6568695684486848187, guid: c6f5e731bfe876a4d8180a00f78cf75e, type: 3}
+  unitNumber: 3

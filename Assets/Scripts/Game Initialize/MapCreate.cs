@@ -72,8 +72,10 @@ public class MapCreate : MonoBehaviour
 
         LinkNeighborCell();
         FloodFillCheck();
-        gameObject.GetComponentInParent<UnitSpawn>().GenerateUnit();
-        Destroy(this.gameObject);
+
+        //Map create done
+        //create player
+        GetComponentInParent<PlayerCreate>().CreatePlayer();
     }
 
     public int landChance;

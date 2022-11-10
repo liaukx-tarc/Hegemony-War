@@ -75,13 +75,18 @@ PrefabInstance:
     - target: {fileID: 113076816156191549, guid: 9dbe2af2fa2a36f4da949c9a7b38a581,
         type: 3}
       propertyPath: m_Name
-      value: SelectionGreen
+      value: SelectionGreen Variant
       objectReference: {fileID: 0}
     - target: {fileID: 128062845504537911, guid: 9dbe2af2fa2a36f4da949c9a7b38a581,
         type: 3}
       propertyPath: m_Materials.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 128062845504537911, guid: 9dbe2af2fa2a36f4da949c9a7b38a581,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 221f1c77589f64e4c96b1aae58f64372, type: 2}
     - target: {fileID: 128062845504537911, guid: 9dbe2af2fa2a36f4da949c9a7b38a581,
         type: 3}
       propertyPath: m_Materials.Array.data[1]
