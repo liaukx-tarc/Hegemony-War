@@ -9,15 +9,12 @@ public class Player : MonoBehaviour
     public List<Unit> unitList = new List<Unit>();
     public int buildNum = 0;
 
+    public GameObject unitListObj;
+    public GameObject buildingListObj;
+
     // Start is called before the first frame update
     protected void Start()
     {
         worldController = GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>();
-    }
-
-    // Update is called once per frame
-    protected void Update()
-    {
-        
     }
 }

@@ -27,7 +27,7 @@ public class MapCell : MonoBehaviour
     public int connectGroupSea;
 
     //Unit
-    public List<Unit> units;
+    public List<Unit> unitsList;
 
     public int q, r, s;
 

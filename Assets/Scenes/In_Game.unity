@@ -4616,6 +4616,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 785497019}
   m_CullTransparentMesh: 1
+--- !u!1 &793192435
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 793192437}
+  - component: {fileID: 793192436}
+  m_Layer: 5
+  m_Name: UIController
+  m_TagString: UI
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &793192436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 793192435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce13a3a29e7ca7741936a4ff413adef2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turnTxt: {fileID: 314395938}
+  turnBtn: {fileID: 2142639888}
+  turnBtnTxt: {fileID: 1106899568}
+  unitUI: {fileID: 57591837}
+  unitName: {fileID: 1135019653}
+  buildingUI: {fileID: 412522338}
+  buildingName: {fileID: 2077770586}
+--- !u!4 &793192437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 793192435}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1382361286}
+  - {fileID: 1409166748}
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &839842928
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4763,10 +4816,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitList: []
   buildNum: 0
-  unitUI: {fileID: 57591837}
-  unitName: {fileID: 1135019653}
-  buildingUI: {fileID: 412522338}
-  buildingName: {fileID: 2077770586}
+  unitListObj: {fileID: 0}
+  buildingListObj: {fileID: 0}
   selectedUnit: {fileID: 0}
   selectionList: {fileID: 68420942}
   selectedBuilding: {fileID: 0}
@@ -6756,8 +6807,8 @@ RectTransform:
   - {fileID: 1101820503}
   - {fileID: 1680317236}
   - {fileID: 212813933}
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 793192437}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -6980,13 +7031,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1409166745}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -20, y: -1.2, z: 19.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_Father: {fileID: 793192437}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1428536701
 GameObject:
@@ -9554,12 +9605,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be6ce08023172684198507f04fa9e5b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  turnTxt: {fileID: 314395938}
-  turnBtn: {fileID: 2142639888}
-  unitUI: {fileID: 57591837}
-  unitName: {fileID: 1135019653}
-  buildingUI: {fileID: 412522338}
-  buildingName: {fileID: 2077770586}
   cameraScirpt: {fileID: 386161304}
   worldInit: {fileID: 3335782581692548122, guid: 8ba9bed762b644c4aa36284260fa1130,
     type: 3}

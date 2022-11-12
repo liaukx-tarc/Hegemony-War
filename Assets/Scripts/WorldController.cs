@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,8 +9,7 @@ public class WorldController : MonoBehaviour
     static public List<Player> playerList = new List<Player>();
     static public MapCell[,] map;
 
-    public TextMeshProUGUI turnTxt;
-    public Button turnBtn;
+    static public UI_Controller UI;
 
     static public List<Unit> activeUnitList = new List<Unit>();
     static public List<Unit> movingUnitList = new List<Unit>();
@@ -24,12 +22,6 @@ public class WorldController : MonoBehaviour
     Color nextColor = new Color(0.95f, 0.75f, 0.08f);
     Color nextSelectColor = new Color(0.98f, 0.85f, 0.45f);
 
-    public GameObject unitUI;
-    public TextMeshProUGUI unitName;
-
-    public GameObject buildingUI;
-    public TextMeshProUGUI buildingName;
-
     public CameraControl cameraScirpt;
 
     public GameObject worldInit;
@@ -40,7 +32,7 @@ public class WorldController : MonoBehaviour
     void Start()
     {
         turn = 0;
-        playerList.Add(GameObject.FindGameObjectWithTag("Player").GetComponent<Player>());
+        UI = GameObject.FindGameObjectWithTag("UI").GetComponent<UI_Controller>();
         Instantiate(worldInit, gameObject.transform);
     }
 
@@ -48,24 +40,24 @@ public class WorldController : MonoBehaviour
     {
         if (activeUnitList.Count != 0)
         {
-            ColorBlock turnBtnColors = turnBtn.colors;
+            ColorBlock turnBtnColors = UI.turnBtn.colors;
             turnBtnColors.normalColor = turnBtnColors.pressedColor = turnBtnColors.selectedColor = activeColor;
             turnBtnColors.highlightedColor = activeSelectColor;
             turnBtnColors.disabledColor = Color.gray;
-            turnBtn.colors = turnBtnColors;
-            turnBtn.GetComponentInChildren<TextMeshProUGUI>().text = activeTxt;
-            turnBtn.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
+            UI.turnBtn.colors = turnBtnColors;
+            UI.turnBtnTxt.text = activeTxt;
+            UI.turnBtnTxt.color = Color.white;
         }
 
         else
         {
-            ColorBlock turnBtnColors = turnBtn.colors;
+            ColorBlock turnBtnColors = UI.turnBtn.colors;
             turnBtnColors.normalColor = turnBtnColors.pressedColor = turnBtnColors.selectedColor = nextColor;
             turnBtnColors.highlightedColor = nextSelectColor;
             turnBtnColors.disabledColor = Color.gray;
-            turnBtn.colors = turnBtnColors;
-            turnBtn.GetComponentInChildren<TextMeshProUGUI>().text = nextTxt;
-            turnBtn.GetComponentInChildren<TextMeshProUGUI>().color = Color.black;
+            UI.turnBtn.colors = turnBtnColors;
+            UI.turnBtnTxt.text = nextTxt;
+            UI.turnBtnTxt.color = Color.black;
         }
     }
 
@@ -100,11 +92,11 @@ public class WorldController : MonoBehaviour
     public void TurnStart()
     {
         turn++;
-        turnTxt.text = "TURN " + turn;
+        UI.turnTxt.text = "TURN " + turn;
 
         foreach (Unit unit in playerList[0].unitList)
         {
-            unit.remainMove = unit.movement; //reset unit remain movement
+            unit.remainMove = unit.property.movement; //reset unit remain movement
 
             if (unit.isMoving)
                 movingUnitList.Add(unit);
@@ -138,7 +130,7 @@ public class WorldController : MonoBehaviour
         HumanPlayer player = (HumanPlayer)playerList[0];
 
         player.selectedBuilding = null;
-        buildingUI.SetActive(false);
+        UI.Disable(UI.buildingUI);
 
         foreach (Unit unit in activeUnitList)
         {
@@ -158,8 +150,8 @@ public class WorldController : MonoBehaviour
 
         if (player.selectedUnit != null)
         {
-            unitName.text = player.selectedUnit.name;
-            unitUI.SetActive(true);
+            UI.unitName.text = player.selectedUnit.name;
+            UI.Enable(UI.unitUI);
             cameraScirpt.MoveCamera(player.selectedUnit.currentPos);
         }
     }

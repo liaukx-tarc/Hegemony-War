@@ -110,9 +110,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a55d3f3025377d42adac1a558129f4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
+  property: {fileID: 11400000, guid: 5fb33ecd225a5c04eab1463c194997f5, type: 2}
   isAction: 0
   currentPos: {fileID: 0}
-  movement: 6
   remainMove: 0
   turnSeachCount: 45
   maxSeachCount: 3000

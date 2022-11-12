@@ -85,8 +85,6 @@ public class CameraControl : MonoBehaviour
             mapHaveMove = true;
             moveCount++;
 
-            Debug.Log(moveCount + " , " + maxCount);
-
             if (moveCount == maxCount)
             {
                 isMoving = false;
@@ -204,7 +202,7 @@ public class CameraControl : MonoBehaviour
                 {
                     cell.transform.position += new Vector3(mapMove.x, 0, mapMove.y);
 
-                    foreach (Unit unit in cell.units)
+                    foreach (Unit unit in cell.unitsList)
                         unit.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
 
                     if (cell.building != null)
@@ -228,7 +226,7 @@ public class CameraControl : MonoBehaviour
                 cell.transform.GetChild(i).gameObject.SetActive(false);
             }
 
-            foreach (Unit unit in cell.units)
+            foreach (Unit unit in cell.unitsList)
             {
                 unit.GetComponent<Renderer>().enabled = false;
                 unit.GetComponent<Collider>().enabled = false;
@@ -248,7 +246,7 @@ public class CameraControl : MonoBehaviour
             for (int h = -16; h < 16; h++)
             {
                 int x = (int)startedCell.position.x + w;
-                int y = (int)startedCell.position.y + h;
+                int y = (int)startedCell.position.y + h - 6;
 
                 if (x < 0)
                     x += WorldController.map.GetLength(0);
@@ -268,7 +266,7 @@ public class CameraControl : MonoBehaviour
                         cell.transform.GetChild(i).gameObject.SetActive(true);
                     }
 
-                    foreach (Unit unit in cell.units)
+                    foreach (Unit unit in cell.unitsList)
                     {
                         unit.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
                         unit.GetComponent<Renderer>().enabled = true;
@@ -294,73 +292,6 @@ public class CameraControl : MonoBehaviour
 
     public void MoveCamera(MapCell targetCell)
     {
-        //foreach (MapCell cell in displayMap)
-        //{
-        //    if (cell != null)
-        //    {
-        //        cell.GetComponent<Renderer>().enabled = false;
-        //        cell.GetComponent<Collider>().enabled = false;
-
-        //        foreach (Unit unit in cell.units)
-        //        {
-        //            unit.GetComponent<Renderer>().enabled = false;
-        //            unit.GetComponent<Collider>().enabled = false;
-        //        }
-
-        //        if (cell.building != null)
-        //        {
-        //            cell.building.GetComponent<Renderer>().enabled = false;
-        //            cell.building.GetComponent<Collider>().enabled = false;
-        //        }
-        //    }
-
-        //}
-
-        //for (int w = -25; w < 25; w++)
-        //{
-        //    for (int h = -16; h < 16; h++)
-        //    {
-        //        int x = (int)targetCell.position.x + w;
-        //        int y = (int)targetCell.position.y + h;
-
-        //        if (x < 0)
-        //            x += WorldController.map.GetLength(0);
-        //        else if (x >= WorldController.map.GetLength(0))
-        //            x -= WorldController.map.GetLength(0);
-
-        //        if (y >= 0 && y < WorldController.map.GetLength(1))
-        //        {
-        //            MapCell cell = WorldController.map[x, y];
-
-        //            cell.transform.position = new Vector3((w * 2f) - (y % 2), 0.0f, h * -1.75f);
-        //            cell.GetComponent<Renderer>().enabled = true;
-        //            cell.GetComponent<Collider>().enabled = true;
-
-
-        //            foreach (Unit unit in cell.units)
-        //            {
-        //                unit.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
-        //                unit.GetComponent<Renderer>().enabled = true;
-        //                unit.GetComponent<Collider>().enabled = true;
-        //            }
-
-        //            if (cell.building != null)
-        //            {
-        //                cell.building.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
-        //                cell.building.GetComponent<Renderer>().enabled = true;
-        //                cell.building.GetComponent<Collider>().enabled = true;
-        //            }
-
-        //            displayMap[w + 25, h + 16] = cell;
-        //        }
-        //    }
-        //}
-
-        //this.transform.position = new Vector3(this.transform.position.x, 11, -20);
-        //maxUp = 0 + this.transform.position.y;
-        //maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
-        //camPosY = targetCell.position.y * 1.75f - this.transform.position.z;
-
         moveCount = 0;
         maxCount = (int)Mathf.Max(Mathf.Abs(displayMap[25, 16].position.x - targetCell.position.x), Mathf.Abs(displayMap[25, 16].position.y - targetCell.position.y));
         if (maxCount > 0)
@@ -404,7 +335,7 @@ public class CameraControl : MonoBehaviour
                                 displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
                             }
 
-                            foreach (Unit unit in displayMap[x, y].units)
+                            foreach (Unit unit in displayMap[x, y].unitsList)
                             {
                                 unit.GetComponent<Renderer>().enabled = false;
                                 unit.GetComponent<Collider>().enabled = false;
@@ -422,7 +353,7 @@ public class CameraControl : MonoBehaviour
                             displayMap[x, y] = displayMap[x, y - 1];
                         else
                         {
-                            if (displayMap[x, y] != null && displayMap[x, y].position.y - 1 > 0)
+                            if (displayMap[x, y] != null && displayMap[x, y].position.y - 1 >= 0)
                             {
                                 displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y - 1];
                                 //enable the cell
@@ -439,7 +370,7 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
                                 }
 
-                                foreach (Unit unit in displayMap[x, y].units)
+                                foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
                                     unit.GetComponent<Renderer>().enabled = true;
                                     unit.GetComponent<Collider>().enabled = true;
@@ -475,7 +406,7 @@ public class CameraControl : MonoBehaviour
                                 displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
                             }
 
-                            foreach (Unit unit in displayMap[x, y].units)
+                            foreach (Unit unit in displayMap[x, y].unitsList)
                             {
                                 unit.GetComponent<Renderer>().enabled = false;
                                 unit.GetComponent<Collider>().enabled = false;
@@ -510,7 +441,7 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
                                 }
 
-                                foreach (Unit unit in displayMap[x, y].units)
+                                foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
                                     unit.GetComponent<Renderer>().enabled = true;
                                     unit.GetComponent<Collider>().enabled = true;
@@ -548,7 +479,7 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
                                 }
 
-                                foreach (Unit unit in displayMap[x, y].units)
+                                foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
                                     unit.GetComponent<Renderer>().enabled = false;
                                     unit.GetComponent<Collider>().enabled = false;
@@ -584,7 +515,7 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
                                 }
 
-                                foreach (Unit unit in displayMap[x, y].units)
+                                foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
                                     unit.GetComponent<Renderer>().enabled = true;
                                     unit.GetComponent<Collider>().enabled = true;
@@ -619,7 +550,7 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
                                 }
 
-                                foreach (Unit unit in displayMap[x, y].units)
+                                foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
                                     unit.GetComponent<Renderer>().enabled = false;
                                     unit.GetComponent<Collider>().enabled = false;
@@ -655,7 +586,7 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
                                 }
 
-                                foreach (Unit unit in displayMap[x, y].units)
+                                foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
                                     unit.GetComponent<Renderer>().enabled = true;
                                     unit.GetComponent<Collider>().enabled = true;

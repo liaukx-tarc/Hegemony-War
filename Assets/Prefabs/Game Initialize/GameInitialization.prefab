@@ -99,5 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3509d31dedc9444e95a6a911b7933b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unit: {fileID: 6568695684486848187, guid: c6f5e731bfe876a4d8180a00f78cf75e, type: 3}
+  unitObj: {fileID: 6568695684486848187, guid: c6f5e731bfe876a4d8180a00f78cf75e, type: 3}
   unitNumber: 3
+  mtrAllianceUnit: {fileID: 2100000, guid: bb204cac5b1bd764381c7aec6f6b2c35, type: 2}
+  mtrEnemeyUnit: {fileID: 2100000, guid: 08198f724525cd840a7fe5ad9fb209b1, type: 2}

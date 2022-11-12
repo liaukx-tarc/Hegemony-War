@@ -7,12 +7,17 @@ public class Unit : MonoBehaviour
     //Player
     public Player player;
 
+    //Unit Propety Scriptable Object
+    public UnitProperty property;
+
+    //Unit state
+    public int remainHp;
+    public float remainMove;
+
     public bool isAction = false;
     public MapCell currentPos;
 
     //pathFinding
-    public int movement = 6;
-    public float remainMove;
     public int turnSeachCount;
     public int maxSeachCount;
     List<MapCell> path = new List<MapCell>();
@@ -32,7 +37,7 @@ public class Unit : MonoBehaviour
 
     private void Start()
     {
-        remainMove = movement;
+        remainMove = property.movement;
     }
 
     private void Update()
@@ -67,9 +72,9 @@ public class Unit : MonoBehaviour
             {
                 if (!isAction)
                 {
-                    currentPos.units.Remove(this);
+                    currentPos.unitsList.Remove(this);
                     currentPos = currentPath;
-                    currentPos.units.Add(this);
+                    currentPos.unitsList.Add(this);
                     path.Remove(currentPath);
 
                     if (currentPos == targetPos)

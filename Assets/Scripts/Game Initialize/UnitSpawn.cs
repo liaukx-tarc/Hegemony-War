@@ -4,24 +4,21 @@ using UnityEngine;
 
 public class UnitSpawn : MonoBehaviour
 {
-    public GameObject unit;
+    public GameObject unitObj;
     public int unitNumber;
-    List<GameObject> tempUnitList = new List<GameObject>(); 
+
+    public Material mtrAllianceUnit;
+    public Material mtrEnemeyUnit;
+
+    GameObject tempUnit;
+    Vector2 tempPos;
+
     public void GenerateUnit()
     {
-        for (int i = 0; i < unitNumber; i++)
+        foreach (Player player in WorldController.playerList)
         {
-            tempUnitList.Add(Instantiate(unit, new Vector3(0, 1.2f, 0), Quaternion.identity));
-            tempUnitList[i].name = "Unit " + (i + 1);
-        }
-
-        Player player = WorldController.playerList[0].GetComponent<Player>();
-
-        if (player != null)
-        {
-            foreach (GameObject temp in tempUnitList)
+            for (int i = 0; i < unitNumber; i++)
             {
-                Vector2 tempPos;
                 do
                 {
                     //Random spawn unit at a position
@@ -31,19 +28,30 @@ public class UnitSpawn : MonoBehaviour
                 } while (WorldController.map[(int)tempPos.x, (int)tempPos.y].cost == 0 || WorldController.map[(int)tempPos.x, (int)tempPos.y].mapType == (int)MapTypeName.Coast ||
                              WorldController.map[(int)tempPos.x, (int)tempPos.y].mapType == (int)MapTypeName.Ocean);
 
-                Unit unit = temp.GetComponent<Unit>();
+                tempUnit = Instantiate(unitObj, WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.2f, 0), 
+                    Quaternion.identity, player.unitListObj.transform);
+                tempUnit.name = "Unit " + (i + 1);
+                Unit unit = tempUnit.GetComponent<Unit>();
+
+                if (player is HumanPlayer)
+                {
+                    tempUnit.GetComponent<Renderer>().material = mtrAllianceUnit;
+                }
+
+                else if (player is AI_Player)
+                {
+                    tempUnit.GetComponent<Renderer>().material = mtrEnemeyUnit;
+                }
 
                 player.unitList.Add(unit);
                 unit.currentPos = WorldController.map[(int)tempPos.x, (int)tempPos.y];
-                temp.transform.position = WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.2f, 0);
-                WorldController.map[(int)tempPos.x, (int)tempPos.y].units.Add(unit);
                 unit.player = player;
+                WorldController.map[(int)tempPos.x, (int)tempPos.y].unitsList.Add(unit);
             }
-
-            GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraControl>().StartCamera(tempUnitList[0].GetComponent<Unit>());
-
         }
 
+        CameraControl cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraControl>();
+        cam.StartCamera(WorldController.playerList[0].unitList[0]);
         GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().TurnStart();//inti complete start turn
 
         Destroy(this.gameObject);

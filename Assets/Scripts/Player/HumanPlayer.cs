@@ -8,13 +8,6 @@ public class HumanPlayer : Player
 {
     const string MapTag = "Map";
 
-    //UI
-    public GameObject unitUI;
-    public TextMeshProUGUI unitName;
-
-    public GameObject buildingUI;
-    public TextMeshProUGUI buildingName;
-
     //Unit select
     public Unit selectedUnit;
     public GameObject selectionList;
@@ -144,20 +137,20 @@ public class HumanPlayer : Player
                 }
 
                 //Select Unit
-                else if (hitInfo.collider.GetComponent<MapCell>().units.Count != 0) //Check has unit or not
+                else if (hitInfo.collider.GetComponent<MapCell>().unitsList.Count != 0) //Check has unit or not
                 {
                     MapCell mapCell = hitInfo.collider.GetComponent<MapCell>();
 
-                    if (selectedUnit == null || selectedUnit != mapCell.units[0])
+                    if (selectedUnit == null || selectedUnit != mapCell.unitsList[0])
                     {
-                        SelectUnit(mapCell.units[0]);
+                        SelectUnit(mapCell.unitsList[0]);
                     }
 
                     else
                     {
-                        if (mapCell.units.Count > mapCell.units.IndexOf(selectedUnit) + 1)
+                        if (mapCell.unitsList.Count > mapCell.unitsList.IndexOf(selectedUnit) + 1)
                         {
-                            SelectUnit(mapCell.units[mapCell.units.IndexOf(selectedUnit) + 1]);
+                            SelectUnit(mapCell.unitsList[mapCell.unitsList.IndexOf(selectedUnit) + 1]);
                         }
 
                         else if (mapCell.building != null)
@@ -179,8 +172,8 @@ public class HumanPlayer : Player
                     selectedUnit = null;
                     selectedBuilding = null;
 
-                    unitUI.SetActive(false);
-                    buildingUI.SetActive(false);
+                    WorldController.UI.Disable(WorldController.UI.unitUI);
+                    WorldController.UI.Disable(WorldController.UI.buildingUI);
                 }
             }
         }
@@ -267,28 +260,28 @@ public class HumanPlayer : Player
             whiteSelectCell.SetActive(false);
             selectedUnit = null;
             rightSelectedCell = null;
-            unitUI.SetActive(false);
+            WorldController.UI.Disable(WorldController.UI.unitUI);
         }
     }
 
     public void SelectUnit(Unit unit)
     {
         selectedBuilding = null;
-        buildingUI.SetActive(false);
+        WorldController.UI.Disable(WorldController.UI.buildingUI);
 
         selectedUnit = unit;
-        unitUI.SetActive(true);
-        unitName.text = selectedUnit.name;
+        WorldController.UI.Enable(WorldController.UI.unitUI);
+        WorldController.UI.unitName.text = selectedUnit.name;
     }
 
     public void SelectBuilding(GameObject building)
     {
         selectedUnit = null;
-        unitUI.SetActive(false);
+        WorldController.UI.Disable(WorldController.UI.unitUI);
 
         selectedBuilding = building;
-        buildingUI.SetActive(true);
-        buildingName.text = selectedBuilding.name;
+        WorldController.UI.Enable(WorldController.UI.buildingUI);
+        WorldController.UI.buildingName.text = selectedBuilding.name;
     }
 
     public void Skip()
@@ -310,10 +303,10 @@ public class HumanPlayer : Player
     public void DestroyUnit()
     {
         unitList.Remove(selectedUnit);
-        selectedUnit.currentPos.units.Remove(selectedUnit);
+        selectedUnit.currentPos.unitsList.Remove(selectedUnit);
         GameObject.Destroy(selectedUnit.gameObject);
         selectedUnit = null;
-        unitUI.SetActive(false);
+        WorldController.UI.Disable(WorldController.UI.unitUI);
     } //Unit Destroy Button
 
     public void Building()
