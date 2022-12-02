@@ -111,10 +111,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a55d3f3025377d42adac1a558129f4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
+  rendererCpn: {fileID: 8408896445926253471}
+  colliderCpn: {fileID: 2376946760553447622}
+  property: {fileID: 0}
+  remainHp: 0
+  remainMove: 0
   isAction: 0
   currentPos: {fileID: 0}
-  movement: 6
-  remainMove: 0
   turnSeachCount: 45
   maxSeachCount: 900
   isMoving: 0

@@ -19,10 +19,11 @@ public class MapCreate : MonoBehaviour
     public int forestCost = 0;
     public int marshCost = 0;
 
-    // Start is called before the first frame update
-    void Start()
+    public void GenerateWorld()
     {
         WorldController.map = new MapCell[width, height];
+        WorldController.mapSize.x = width;
+        WorldController.mapSize.y = height;
         int[,] mapTypeList = CellularAutomata_MapGenerate();
 
         for (int w = 0; w < width; w++)
@@ -72,10 +73,6 @@ public class MapCreate : MonoBehaviour
 
         LinkNeighborCell();
         FloodFillCheck();
-
-        //Map create done
-        //create player
-        GetComponentInParent<PlayerCreate>().CreatePlayer();
     }
 
     public int landChance;
@@ -452,9 +449,6 @@ public class MapCreate : MonoBehaviour
     }
 
     //Use Flood Fill algorthm to check the connect of the map
-
-
-
     void FloodFillCheck()
     {
         //check without sea connection

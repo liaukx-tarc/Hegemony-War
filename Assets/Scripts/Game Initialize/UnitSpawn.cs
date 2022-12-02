@@ -10,6 +10,8 @@ public class UnitSpawn : MonoBehaviour
     public Material mtrAllianceUnit;
     public Material mtrEnemeyUnit;
 
+    public UnitProperty unitProperty;
+
     GameObject tempUnit;
     Vector2 tempPos;
 
@@ -31,7 +33,10 @@ public class UnitSpawn : MonoBehaviour
                 tempUnit = Instantiate(unitObj, WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.2f, 0), 
                     Quaternion.identity, player.unitListObj.transform);
                 tempUnit.name = "Unit " + (i + 1);
+               
                 Unit unit = tempUnit.GetComponent<Unit>();
+                unit.template = new UnitTemplate(unitProperty, null);
+                unit.InitializeUnit();
 
                 if (player is HumanPlayer)
                 {
@@ -51,7 +56,7 @@ public class UnitSpawn : MonoBehaviour
         }
 
         CameraControl cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraControl>();
-        cam.StartCamera(WorldController.playerList[0].unitList[0]);
+        cam.StartCamera(WorldController.playerList[0].unitList[0].currentPos);
         GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().TurnStart();//inti complete start turn
 
         Destroy(this.gameObject);

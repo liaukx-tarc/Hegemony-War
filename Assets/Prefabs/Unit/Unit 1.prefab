@@ -111,10 +111,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
+  rendererCpn: {fileID: 60940618986250393}
+  colliderCpn: {fileID: 6195032986808074152}
   property: {fileID: 11400000, guid: 5fb33ecd225a5c04eab1463c194997f5, type: 2}
+  remainHp: 0
+  remainMove: 0
   isAction: 0
   currentPos: {fileID: 0}
-  remainMove: 0
   turnSeachCount: 45
   maxSeachCount: 3000
   isMoving: 0

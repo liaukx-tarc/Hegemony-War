@@ -6,9 +6,15 @@ public class Player : MonoBehaviour
 {
     protected WorldController worldController;
 
+    public List<UnitTemplate> unitTemplateList = new List<UnitTemplate>();
+
+    //Unit List
     public List<Unit> unitList = new List<Unit>();
+
+    //Testing
     public int buildNum = 0;
 
+    [Header("Prefabs")]
     public GameObject unitListObj;
     public GameObject buildingListObj;
 

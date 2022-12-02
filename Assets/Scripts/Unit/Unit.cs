@@ -7,11 +7,16 @@ public class Unit : MonoBehaviour
     //Player
     public Player player;
 
+    //Component
+    public Renderer rendererCpn;
+    public Collider colliderCpn;
+
     //Unit Propety Scriptable Object
-    public UnitProperty property;
+    public UnitTemplate template;
 
     //Unit state
-    public int remainHp;
+    public int currentHp;
+    public int damage;
     public float remainMove;
 
     public bool isAction = false;
@@ -35,13 +40,15 @@ public class Unit : MonoBehaviour
     public GameObject buildingObj;
     public bool isBuilding = false;
 
-    private void Start()
+    public void InitializeUnit()
     {
-        remainMove = property.movement;
+        currentHp = template.property.maxHp;
+        damage = template.property.damage;
+        remainMove = template.property.speed;
     }
 
     private void Update()
-    {
+    {        
         if(startMove)
         {
             if (path.Count > 0)
@@ -86,7 +93,7 @@ public class Unit : MonoBehaviour
                                 Quaternion.identity);
                             building.transform.parent = targetPos.transform;
                             building.name = "Building" + " " + ++player.buildNum;
-                            targetPos.building = building;
+                            targetPos.building = building.GetComponent<Building>();
 
                             isBuilding = false;
                         }

@@ -10,8 +10,8 @@ public class HumanPlayer : Player
 
     //Unit select
     public Unit selectedUnit;
+    public Building selectedBuilding;
     public GameObject selectionList;
-    public GameObject selectedBuilding;
     public GameObject whiteSelectCell;
     public GameObject yellowSelectCell;
     public GameObject redSelectCell;
@@ -271,10 +271,10 @@ public class HumanPlayer : Player
 
         selectedUnit = unit;
         WorldController.UI.Enable(WorldController.UI.unitUI);
-        WorldController.UI.unitName.text = selectedUnit.name;
+        WorldController.UI.showUnit(selectedUnit.name, selectedUnit.template.property.maxHp, selectedUnit.currentHp, selectedUnit.template.property.armor, selectedUnit.damage, selectedUnit.remainMove);
     }
 
-    public void SelectBuilding(GameObject building)
+    public void SelectBuilding(Building building)
     {
         selectedUnit = null;
         WorldController.UI.Disable(WorldController.UI.unitUI);

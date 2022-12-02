@@ -35,6 +35,6 @@ public class PlayerCreate : MonoBehaviour
             player.buildingListObj.name = "BuildingList";
         }
 
-        GetComponentInParent<UnitSpawn>().GenerateUnit();
+        WorldController.currentPlayer = WorldController.playerList[0];
     }
 }

@@ -1,26 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class WorldController : MonoBehaviour
 {
     static public int turn;
+    
+    //Player
     static public List<Player> playerList = new List<Player>();
+    static public Player currentPlayer;
+    
+    //Map
     static public MapCell[,] map;
+    static public Vector2 mapSize;
 
+    //UI Controller
     static public UI_Controller UI;
 
+    //Unit List
     static public List<Unit> activeUnitList = new List<Unit>();
     static public List<Unit> movingUnitList = new List<Unit>();
-
-    string activeTxt = "NEXT\nUNIT";
-    Color activeColor = new Color(0.08f, 0.3f, 1);
-    Color activeSelectColor = new Color(0.08f, 0.6f, 1);
-
-    string nextTxt = "END\nTURN";
-    Color nextColor = new Color(0.95f, 0.75f, 0.08f);
-    Color nextSelectColor = new Color(0.98f, 0.85f, 0.45f);
 
     public CameraControl cameraScirpt;
 
@@ -33,35 +34,21 @@ public class WorldController : MonoBehaviour
     {
         turn = 0;
         UI = GameObject.FindGameObjectWithTag("UI").GetComponent<UI_Controller>();
-        Instantiate(worldInit, gameObject.transform);
+        InitializeWorld();
     }
 
-    void Update()
+    void InitializeWorld()
     {
-        if (activeUnitList.Count != 0)
-        {
-            ColorBlock turnBtnColors = UI.turnBtn.colors;
-            turnBtnColors.normalColor = turnBtnColors.pressedColor = turnBtnColors.selectedColor = activeColor;
-            turnBtnColors.highlightedColor = activeSelectColor;
-            turnBtnColors.disabledColor = Color.gray;
-            UI.turnBtn.colors = turnBtnColors;
-            UI.turnBtnTxt.text = activeTxt;
-            UI.turnBtnTxt.color = Color.white;
-        }
-
-        else
-        {
-            ColorBlock turnBtnColors = UI.turnBtn.colors;
-            turnBtnColors.normalColor = turnBtnColors.pressedColor = turnBtnColors.selectedColor = nextColor;
-            turnBtnColors.highlightedColor = nextSelectColor;
-            turnBtnColors.disabledColor = Color.gray;
-            UI.turnBtn.colors = turnBtnColors;
-            UI.turnBtnTxt.text = nextTxt;
-            UI.turnBtnTxt.color = Color.black;
-        }
+        GameObject worldGenerator = Instantiate(worldInit, gameObject.transform);
+        worldGenerator.GetComponent<MapCreate>().GenerateWorld();
+        worldGenerator.GetComponent<PlayerCreate>().CreatePlayer();
+        worldGenerator.GetComponent<UnitSpawn>().GenerateUnit();
     }
 
     IEnumerator endTurnCoroutine;
+
+    public delegate void TurnEndFunction();
+    public static TurnEndFunction turnEndFunction;
 
     public void NextTurn()
     {
@@ -89,20 +76,25 @@ public class WorldController : MonoBehaviour
             TurnStart();
     }
 
+    public delegate void StartTurnFunction();
+    public static StartTurnFunction startTurnFunction;
+
     public void TurnStart()
     {
         turn++;
-        UI.turnTxt.text = "TURN " + turn;
 
-        foreach (Unit unit in playerList[0].unitList)
+        foreach (Unit unit in currentPlayer.unitList)
         {
-            unit.remainMove = unit.property.movement; //reset unit remain movement
+            unit.remainMove = unit.template.property.speed; //reset unit remain speed
 
             if (unit.isMoving)
                 movingUnitList.Add(unit);
             else
                 activeUnitList.Add(unit);
         }
+
+        if(startTurnFunction != null)
+            startTurnFunction();
     }
 
     public void TurnBtn()
@@ -150,23 +142,9 @@ public class WorldController : MonoBehaviour
 
         if (player.selectedUnit != null)
         {
-            UI.unitName.text = player.selectedUnit.name;
+            UI.showUnit(player.selectedUnit.name, player.selectedUnit.template.property.maxHp, player.selectedUnit.currentHp, player.selectedUnit.template.property.armor, player.selectedUnit.damage, player.selectedUnit.remainMove);
             UI.Enable(UI.unitUI);
             cameraScirpt.MoveCamera(player.selectedUnit.currentPos);
         }
-    }
-
-    //Lens
-    bool lenState = false;
-    public GameObject lens1;
-    public GameObject lens2;
-    public GameObject lens3;
-
-    public void lensOpen()
-    {
-        lenState = !lenState;
-        lens1.SetActive(lenState);
-        lens2.SetActive(lenState);
-        lens3.SetActive(lenState);
     }
 }

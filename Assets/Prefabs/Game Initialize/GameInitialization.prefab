@@ -103,3 +103,4 @@ MonoBehaviour:
   unitNumber: 3
   mtrAllianceUnit: {fileID: 2100000, guid: bb204cac5b1bd764381c7aec6f6b2c35, type: 2}
   mtrEnemeyUnit: {fileID: 2100000, guid: 08198f724525cd840a7fe5ad9fb209b1, type: 2}
+  unitProperty: {fileID: 11400000, guid: 5fb33ecd225a5c04eab1463c194997f5, type: 2}

@@ -1,10 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+using Unity.Burst.CompilerServices;
+using UnityEditor.Rendering;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 public class CameraControl : MonoBehaviour
 {
+    public int cameraSpeed;
+    public float zoomSpeed;
+    public int maxZoomIn, maxZoomOut, halfDisplayX, halfDisplayY;
+
+    public Vector2 maxDisplayMaxSize;
+    MapCell[,] displayMap;
+
     enum Direction
     {
         Up,
@@ -13,599 +21,573 @@ public class CameraControl : MonoBehaviour
         Right
     }
 
+    const string MapTag = "Map";
     const string CameraUp = "CameraUp";
     const string CameraDown = "CameraDown";
     const string CameraLeft = "CameraLeft";
     const string CameraRight = "CameraRight";
 
-    public int cameraSpeed;
-    public int maxZoomOut, maxZoomIn;
-
-    MapCell[,] displayMap = new MapCell[50, 32];
-
-    int moveCount, maxCount;
-    public float maxUp, maxDown, camPosY, moveRange;
-    float upCount = 0;
-    float downCount = 0;
-    float leftCount = 0;
-    float rightCount = 0;
-    bool isMoving = false;
-    bool mapHaveMove = false;
-    Vector2 mapMove;
+    RaycastHit hitInfo;
+    MapCell perviousMiddleCell;
+    MapCell currentMiddleCell;
+    MapCell tempCell;
+    Vector2 curMovedDis;
+    Vector3 heighFix = new Vector3(0, 1.2f, 0);
+    bool isCulled;
+    int culledCount = 0;
     
 
-    void Update()
+    private void Update()
     {
-        if(isMoving)
+        hitInfo = new RaycastHit();
+
+        //Check Middle Cell
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitInfo, 100, LayerMask.GetMask(MapTag)))
         {
-            if(mapMove.x > 0)
+            currentMiddleCell = hitInfo.collider.GetComponent<MapCell>();
+            if (perviousMiddleCell != null && currentMiddleCell != perviousMiddleCell)
             {
-                leftCount += mapMove.x;
-                if (leftCount > 2)
+                //Moving Up
+                if (curMovedDis.y <= -1.75f)
                 {
-                    leftCount -= 2;
-                    MapCulling((int)Direction.Left);
+                    MapCulling(Direction.Up);
+                    curMovedDis.y += 1.75f;
+                }
+                    
+
+                //Moving Down
+                else if (curMovedDis.y >= 1.75f)
+                {
+                    MapCulling(Direction.Down);
+                    curMovedDis.y -= 1.75f;
+                }
+                    
+
+                //Moving Left
+                if (curMovedDis.x <= -2.0f)
+                {
+                    MapCulling(Direction.Left);
+                    curMovedDis.x += 2.0f;
+                }
+                   
+                //Moving Right
+                else if (curMovedDis.x >= 2.0f)
+                {
+                    MapCulling(Direction.Right);
+                    curMovedDis.x -= 2.0f;
                 }
             }
 
-            else if(mapMove.x < 0)
-            {
-                rightCount -= mapMove.x;
-                if (rightCount > 2)
-                {
-                    rightCount -= 2;
-                    MapCulling((int)Direction.Right);
-                }
-            }
-
-            if(mapMove.y < 0)
-            {
-                camPosY += mapMove.y;
-                upCount -= mapMove.y;
-
-                if (upCount > 2)
-                {
-                    upCount -= 2;
-                    MapCulling((int)Direction.Up);
-                }
-            }
-
-            else if(mapMove.y > 0)
-            {
-                camPosY += mapMove.y;
-                downCount += mapMove.y;
-                
-                if (downCount > 2)
-                {
-                    downCount -= 2;
-                    MapCulling((int)Direction.Down);
-                }
-            }
-
-            mapHaveMove = true;
-            moveCount++;
-
-            if (moveCount == maxCount)
-            {
-                isMoving = false;
-            }
-                
+            perviousMiddleCell = currentMiddleCell;
         }
 
-        else
+        //Camera Move
+        if (Input.GetButton(CameraUp) && currentMiddleCell.position.y != 0)
         {
-            mapMove = new Vector2(0, 0);
+            curMovedDis.y -= cameraSpeed * Time.deltaTime;
+            this.transform.position += Vector3.forward * cameraSpeed * Time.deltaTime;
+        }
 
-            //Camera Move
-            if (Input.GetButton(CameraUp))
+        if (Input.GetButton(CameraDown) && currentMiddleCell.position.y != WorldController.mapSize.y - 1)
+        {
+            curMovedDis.y += cameraSpeed * Time.deltaTime;
+            this.transform.position += Vector3.back * cameraSpeed * Time.deltaTime;
+        }
+
+        if (Input.GetButton(CameraLeft))
+        {
+            curMovedDis.x -= cameraSpeed * Time.deltaTime;
+            this.transform.position += Vector3.left * cameraSpeed * Time.deltaTime;
+        }
+
+        if (Input.GetButton(CameraRight))
+        {
+            curMovedDis.x += cameraSpeed * Time.deltaTime;
+            this.transform.position += Vector3.right * cameraSpeed * Time.deltaTime;
+        }
+
+        //Camera Zoom
+        if (Input.mouseScrollDelta.y > 0)
+        {
+            if (this.transform.position.y > maxZoomIn)
             {
-                moveRange = -cameraSpeed * Time.deltaTime;
-                if (camPosY + moveRange < maxUp)
-                    moveRange = maxUp - camPosY;
-
-                camPosY += moveRange;
-                upCount -= moveRange;
-
-                if (upCount > 2)
+                this.transform.position += new Vector3(0, -1, 1) * zoomSpeed;
+                if (this.transform.position.y < maxZoomIn)
                 {
-                    upCount -= 2;
-                    MapCulling((int)Direction.Up);
-                }
-
-                mapMove.y += moveRange;
-                mapHaveMove = true;
-            }
-
-            if (Input.GetButton(CameraDown))
-            {
-                moveRange = cameraSpeed * Time.deltaTime;
-                if (camPosY + moveRange > maxDown)
-                    moveRange = maxDown - camPosY;
-
-                camPosY += moveRange;
-                downCount += moveRange;
-                if (downCount > 2)
-                {
-                    downCount -= 2;
-                    MapCulling((int)Direction.Down);
-                }
-
-                mapMove.y += moveRange;
-                mapHaveMove = true;
-            }
-
-            if (Input.GetButton(CameraLeft))
-            {
-                leftCount += cameraSpeed * Time.deltaTime;
-
-                if (leftCount > 2)
-                {
-                    leftCount -= 2;
-                    MapCulling((int)Direction.Left);
-                }
-
-                mapMove.x += cameraSpeed * Time.deltaTime;
-                mapHaveMove = true;
-            }
-
-            if (Input.GetButton(CameraRight))
-            {
-                rightCount += cameraSpeed * Time.deltaTime;
-
-                if (rightCount > 2)
-                {
-                    rightCount -= 2;
-                    MapCulling((int)Direction.Right);
-                }
-
-                mapMove.x += -cameraSpeed * Time.deltaTime;
-                mapHaveMove = true;
-            }
-
-            //Camera Zoom
-            if (Input.mouseScrollDelta.y > 0)
-            {
-                if (this.transform.position.y > maxZoomIn)
-                {
-                    camPosY += transform.forward.y * Input.mouseScrollDelta.y;
-                    this.transform.position += transform.forward * Input.mouseScrollDelta.y;
-
-                    this.transform.position = new Vector3(this.transform.position.x,
-                        Mathf.Max(maxZoomIn, this.transform.position.y), this.transform.position.z);
-
-                    maxUp = 0 + this.transform.position.y;
-                    maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
-                }
-            }
-
-            else if (Input.mouseScrollDelta.y < 0)
-            {
-                if (this.transform.position.y < maxZoomOut)
-                {
-                    camPosY += transform.forward.y * Input.mouseScrollDelta.y;
-                    this.transform.position += transform.forward * Input.mouseScrollDelta.y;
-
-                    this.transform.position = new Vector3(this.transform.position.x,
-                       Mathf.Min(maxZoomOut, this.transform.position.y), this.transform.position.z);
-
-                    maxUp = 0 + this.transform.position.y;
-                    maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
+                    float fix = maxZoomIn - this.transform.position.y;
+                    this.transform.position -= new Vector3(0, -fix, fix) * zoomSpeed;
                 }
             }
         }
 
-        if(mapHaveMove)
+        else if (Input.mouseScrollDelta.y < 0)
         {
-            foreach (MapCell cell in displayMap)
+            if (this.transform.position.y < maxZoomOut)
             {
-                if (cell != null)
+                this.transform.position += new Vector3(0, 1, -1) * zoomSpeed;
+                if (this.transform.position.y < maxZoomIn)
                 {
-                    cell.transform.position += new Vector3(mapMove.x, 0, mapMove.y);
-
-                    foreach (Unit unit in cell.unitsList)
-                        unit.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
-
-                    if (cell.building != null)
-                        cell.building.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
+                    float fix = maxZoomIn - this.transform.position.y;
+                    this.transform.position -= new Vector3(0, fix, -fix) * zoomSpeed;
                 }
             }
-
-            mapHaveMove = false;
-        }   
+        }
     }
 
-    public void StartCamera(Unit startedUnit)
+    public void ChangeMaxZoom(int newZoomOut)
     {
-        foreach (MapCell cell in WorldController.map)
+        maxZoomOut = newZoomOut;
+        StartCamera(currentMiddleCell);
+    }
+
+    public void StartCamera(MapCell startCell)
+    {
+        displayMap = new MapCell[(int)maxDisplayMaxSize.x, (int)maxDisplayMaxSize.y];
+
+        halfDisplayX = (int)maxDisplayMaxSize.x / 2;
+        halfDisplayY = (int)maxDisplayMaxSize.y / 2;
+
+        MapCell cell;
+
+        for (int x = 0; x < WorldController.mapSize.x; x++)
         {
-            cell.GetComponent<Renderer>().enabled = false;
-            cell.GetComponent<Collider>().enabled = false;
-
-            for (int i = 0; i < cell.transform.childCount; i++)
+            for (int y = 0; y < WorldController.mapSize.y; y++)
             {
-                cell.transform.GetChild(i).gameObject.SetActive(false);
-            }
+                cell = WorldController.map[x, y];
+                cell.gameObject.SetActive(false);
 
-            foreach (Unit unit in cell.unitsList)
-            {
-                unit.GetComponent<Renderer>().enabled = false;
-                unit.GetComponent<Collider>().enabled = false;
-            }
-
-            if (cell.building != null)
-            {
-                cell.building.GetComponent<Renderer>().enabled = false;
-                cell.building.GetComponent<Collider>().enabled = false;
-            }
-        }
-
-        MapCell startedCell = startedUnit.currentPos;
-
-        for (int w = -25; w < 25; w++)
-        {
-            for (int h = -16; h < 16; h++)
-            {
-                int x = (int)startedCell.position.x + w;
-                int y = (int)startedCell.position.y + h - 6;
-
-                if (x < 0)
-                    x += WorldController.map.GetLength(0);
-                else if (x >= WorldController.map.GetLength(0))
-                    x -= WorldController.map.GetLength(0);
-
-                if (y >= 0 && y < WorldController.map.GetLength(1))
+                foreach (Unit unit in cell.unitsList)
                 {
-                    MapCell cell = WorldController.map[x, y];
+                    unit.rendererCpn.enabled = false;
+                    unit.colliderCpn.enabled = false;
+                }
 
-                    cell.transform.position = new Vector3((w * 2f) - (y % 2), 0.0f, h * -1.75f);                  
-                    cell.GetComponent<Renderer>().enabled = true;
-                    cell.GetComponent<Collider>().enabled = true;
-
-                    for (int i = 0; i < cell.transform.childCount; i++)
-                    {
-                        cell.transform.GetChild(i).gameObject.SetActive(true);
-                    }
-
-                    foreach (Unit unit in cell.unitsList)
-                    {
-                        unit.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
-                        unit.GetComponent<Renderer>().enabled = true;
-                        unit.GetComponent<Collider>().enabled = true;
-                    }
-
-                    if (cell.building != null)
-                    {
-                        cell.building.transform.position = cell.transform.position + new Vector3(0, 1.2f, 0);
-                        cell.building.GetComponent<Renderer>().enabled = true;
-                        cell.building.GetComponent<Collider>().enabled = true;
-                    }
-
-                    displayMap[w + 25, h + 16] = cell;
+                if (cell.building != null)
+                {
+                    cell.building.rendererCpn.enabled = false;
+                    cell.building.colliderCpn.enabled = false;
                 }
             }
         }
 
-        maxUp = 0 + this.transform.position.y;
-        maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
-        camPosY = startedUnit.currentPos.position.y * 1.75f - this.transform.position.z ;
+        MoveCamera(startCell);
     }
 
     public void MoveCamera(MapCell targetCell)
     {
-        moveCount = 0;
-        maxCount = (int)Mathf.Max(Mathf.Abs(displayMap[25, 16].position.x - targetCell.position.x), Mathf.Abs(displayMap[25, 16].position.y - targetCell.position.y));
-        if (maxCount > 0)
-            isMoving = true;
-        else
-            return;
+        foreach (MapCell tempCell in displayMap)
+        {
+            if (tempCell != null)
+            {
+                tempCell.gameObject.SetActive(false);
 
-        Vector2 targetPos = new Vector2(displayMap[25, 16].transform.position.x - (displayMap[25, 16].position.x - targetCell.position.x) * 2,
-            displayMap[25, 16].transform.position.z - (displayMap[25, 16].position.y - targetCell.position.y) * -1.75f);
+                foreach (Unit unit in tempCell.unitsList)
+                {
+                    unit.rendererCpn.enabled = false;
+                    unit.colliderCpn.enabled = false;
+                }
+
+                if (tempCell.building != null)
+                {
+                    tempCell.building.rendererCpn.enabled = false;
+                    tempCell.building.colliderCpn.enabled = false;
+                }
+            }
+        }
+
+        MapCell cell;
+
+        for (int w = -halfDisplayX; w < halfDisplayX; w++)
+        {
+            isCulled = false;
+            for (int h = -halfDisplayY; h < halfDisplayY; h++)
+            {
+                int x = (int)targetCell.position.x + w;
+                int y = (int)targetCell.position.y + h;
+
+                //let the map connect together horizontally
+                if (x < 0)
+                    x += (int)WorldController.mapSize.x;
+                else if (x >= WorldController.mapSize.x)
+                    x -= (int)WorldController.mapSize.x;
 
 
-        if (this.transform.position.x - targetPos.x != 0)
-            mapMove.x = (this.transform.position.x - targetPos.x) / maxCount;
+                if (!isCulled)
+                {
+                    for (int i = 0; i < WorldController.mapSize.y; i++)
+                    {
+                        cell = WorldController.map[x, i];
+                        cell.transform.position = new Vector3((w * 2f) - (Mathf.Abs(i) % 2f), 0.0f, i * -1.75f);
 
-        if (this.transform.position.z + 20 - targetPos.y != 0)
-            mapMove.y = (this.transform.position.z + 10 - targetPos.y) / maxCount;
+                        foreach (Unit unit in cell.unitsList)
+                            unit.transform.position = cell.transform.position + heighFix;
 
-        this.transform.position = new Vector3(this.transform.position.x, 11, -20);
-        maxUp = 0 + this.transform.position.y;
-        maxDown = WorldController.map.GetLength(1) * 1.75f + this.transform.position.y;
-        camPosY = targetCell.position.y * 1.75f - this.transform.position.z;
+                        if (cell.building != null)
+                            cell.building.transform.position = cell.transform.position + heighFix;
+                    }
+                    isCulled = true;
+                }
+
+                if (y >= 0 && y < WorldController.mapSize.y)
+                {
+                    cell = WorldController.map[x, y];
+                    cell.gameObject.SetActive(true);
+
+                    foreach (Unit unit in cell.unitsList)
+                    {
+                        unit.rendererCpn.enabled = true;
+                        unit.colliderCpn.enabled = true;
+                    }
+
+                    if (cell.building != null)
+                    {
+                        cell.building.rendererCpn.enabled = true;
+                        cell.building.colliderCpn.enabled = true;
+                    }
+
+                    displayMap[w + halfDisplayX, h + halfDisplayY] = cell;
+                }
+            }
+        }
+
+        this.transform.position = new Vector3(targetCell.transform.position.x, transform.position.y,
+            targetCell.transform.position.z - (transform.position.y / 2 + 1) * 1.75f);
+
+        culledCount = 0;
     }
 
-    void MapCulling(int direction)
+    void MapCulling(Direction direction)
     {
         switch (direction)
         {
-            case (int)Direction.Up:
-                for (int x = 0; x < 50; x++)
+            case Direction.Up:
+                for (int x = 0; x < maxDisplayMaxSize.x; x++)
                 {
-                    for (int y = 31; y >= 0; y--)
+                    for (int y = (int)maxDisplayMaxSize.y - 1; y >= 0 ; y--)
                     {
-                        //disable the first row cell
-                        if (y == 31 && displayMap[x, y] != null)
+                        if (y == (int)maxDisplayMaxSize.y - 1)
                         {
-                            displayMap[x, y].GetComponent<Renderer>().enabled = false;
-                            displayMap[x, y].GetComponent<Collider>().enabled = false;
-
-                            for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
+                            if (displayMap[x, y] != null)
                             {
-                                displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
+                                displayMap[x, y].gameObject.SetActive(false);
+
+                                foreach (Unit unit in displayMap[x, y].unitsList)
+                                {
+                                    unit.rendererCpn.enabled = false;
+                                    unit.colliderCpn.enabled = false;
+                                }
+
+                                if (displayMap[x, y].building != null)
+                                {
+                                    displayMap[x, y].building.rendererCpn.enabled = false;
+                                    displayMap[x, y].building.colliderCpn.enabled = false;
+                                }
                             }
 
-                            foreach (Unit unit in displayMap[x, y].unitsList)
-                            {
-                                unit.GetComponent<Renderer>().enabled = false;
-                                unit.GetComponent<Collider>().enabled = false;
-                            }
-
-                            if (displayMap[x, y].building != null)
-                            {
-                                displayMap[x, y].building.GetComponent<Renderer>().enabled = false;
-                                displayMap[x, y].building.GetComponent<Collider>().enabled = false;
-                            }
-                        }
-
-                        //swap array
-                        if (y > 0)
                             displayMap[x, y] = displayMap[x, y - 1];
-                        else
+                        }
+
+
+                        else if (y == 0)
                         {
-                            if (displayMap[x, y] != null && displayMap[x, y].position.y - 1 >= 0)
+                            if (displayMap[x, y] != null)
                             {
-                                displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y - 1];
-                                //enable the cell
-                                if (displayMap[x, y].position.y % 2 == 0)
-                                    displayMap[x, y].transform.position = displayMap[x, y + 1].transform.position + new Vector3(1, 0, 1.75f);
+                                if (displayMap[x, y].position.y - 1 >= 0)
+                                {
+                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y - 1];
+                                    displayMap[x, y].gameObject.SetActive(true);
+
+                                    foreach (Unit unit in displayMap[x, y].unitsList)
+                                    {
+                                        unit.rendererCpn.enabled = true;
+                                        unit.colliderCpn.enabled = true;
+                                    }
+
+                                    if (displayMap[x, y].building != null)
+                                    {
+                                        displayMap[x, y].building.rendererCpn.enabled = true;
+                                        displayMap[x, y].building.colliderCpn.enabled = true;
+
+                                    }
+                                }
+
                                 else
-                                    displayMap[x, y].transform.position = displayMap[x, y + 1].transform.position + new Vector3(-1, 0, 1.75f);
-
-                                displayMap[x, y].GetComponent<Renderer>().enabled = true;
-                                displayMap[x, y].GetComponent<Collider>().enabled = true;
-
-                                for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
                                 {
-                                    displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
-                                }
-
-                                foreach (Unit unit in displayMap[x, y].unitsList)
-                                {
-                                    unit.GetComponent<Renderer>().enabled = true;
-                                    unit.GetComponent<Collider>().enabled = true;
-                                }
-
-                                if (displayMap[x, y].building != null)
-                                {
-                                    displayMap[x, y].building.GetComponent<Renderer>().enabled = true;
-                                    displayMap[x, y].building.GetComponent<Collider>().enabled = true;
+                                    displayMap[x, y] = null;
                                 }
                             }
+                        }
 
-                            else
-                                displayMap[x, y] = null;
+                        else
+                        {
+                            displayMap[x, y] = displayMap[x, y - 1];
                         }
                     }
                 }
                 break;
 
-            case (int)Direction.Down:
-                for (int x = 0; x < 50; x++)
+            case Direction.Down:
+                for (int x = 0; x < maxDisplayMaxSize.x; x++)
                 {
-                    for (int y = 0; y < 32; y++)
+                    for (int y  = 0; y < maxDisplayMaxSize.y; y++)
                     {
-                        //disable the first row cell
-                        if (y == 0 && displayMap[x, y] != null)
+                        if(y == 0)
                         {
-                            displayMap[x, y].GetComponent<Renderer>().enabled = false;
-                            displayMap[x, y].GetComponent<Collider>().enabled = false;
-
-                            for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
+                            if (displayMap[x, y] != null)
                             {
-                                displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
+                                displayMap[x, y].gameObject.SetActive(false);
+
+                                foreach (Unit unit in displayMap[x, y].unitsList)
+                                {
+                                    unit.rendererCpn.enabled = false;
+                                    unit.colliderCpn.enabled = false;
+                                }
+
+                                if (displayMap[x, y].building != null)
+                                {
+                                    displayMap[x, y].building.rendererCpn.enabled = false;
+                                    displayMap[x, y].building.colliderCpn.enabled = false;
+                                }
                             }
 
-                            foreach (Unit unit in displayMap[x, y].unitsList)
-                            {
-                                unit.GetComponent<Renderer>().enabled = false;
-                                unit.GetComponent<Collider>().enabled = false;
-                            }
-
-                            if (displayMap[x, y].building != null)
-                            {
-                                displayMap[x, y].building.GetComponent<Renderer>().enabled = false;
-                                displayMap[x, y].building.GetComponent<Collider>().enabled = false;
-                            }
-                        }
-
-                        //swap array
-                        if (y < 31)
                             displayMap[x, y] = displayMap[x, y + 1];
+                        }
+
+                        else if(y == (int)maxDisplayMaxSize.y - 1)
+                        {
+                            if (displayMap[x, y] != null)
+                            {
+                                if (displayMap[x, y].position.y + 1 < WorldController.mapSize.y)
+                                {
+                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y + 1];
+                                    displayMap[x, y].gameObject.SetActive(true);
+
+                                    foreach (Unit unit in displayMap[x, y].unitsList)
+                                    {
+                                        unit.rendererCpn.enabled = true;
+                                        unit.colliderCpn.enabled = true;
+                                    }
+
+                                    if (displayMap[x, y].building != null)
+                                    {
+                                        displayMap[x, y].building.rendererCpn.enabled = true;
+                                        displayMap[x, y].building.colliderCpn.enabled = true;
+
+                                    }
+                                }
+
+                                else
+                                {
+                                    displayMap[x, y] = null;
+                                }
+                            }
+                        }
+
                         else
                         {
-                            if (displayMap[x, y] != null && displayMap[x, y].position.y + 1 < WorldController.map.GetLength(1))
-                            {
-                                displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y + 1];
-                                //enable the cell
-                                if (displayMap[x, y].position.y % 2 == 0)
-                                    displayMap[x, y].transform.position = displayMap[x, y - 1].transform.position + new Vector3(1, 0, -1.75f);
-                                else
-                                    displayMap[x, y].transform.position = displayMap[x, y - 1].transform.position + new Vector3(-1, 0, -1.75f);
-
-                                displayMap[x, y].GetComponent<Renderer>().enabled = true;
-                                displayMap[x, y].GetComponent<Collider>().enabled = true;
-
-                                for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
-                                {
-                                    displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
-                                }
-
-                                foreach (Unit unit in displayMap[x, y].unitsList)
-                                {
-                                    unit.GetComponent<Renderer>().enabled = true;
-                                    unit.GetComponent<Collider>().enabled = true;
-                                }
-
-                                if (displayMap[x, y].building != null)
-                                {
-                                    displayMap[x, y].building.GetComponent<Renderer>().enabled = true;
-                                    displayMap[x, y].building.GetComponent<Collider>().enabled = true;
-                                }
-                            }
-
-                            else
-                                displayMap[x, y] = null;
+                            displayMap[x, y] = displayMap[x, y + 1];
                         }
                     }
                 }
                 break;
 
-            case (int)Direction.Left:
-                for (int x = 49; x >= 0; x--)
-                {
-                    for (int y = 0; y < 32; y++)
-                    {
-                        if (displayMap[x, y] != null)
-                        {
-                            //disable the last row cell
-                            if (x == 49)
-                            {
-                                displayMap[x, y].GetComponent<Renderer>().enabled = false;
-                                displayMap[x, y].GetComponent<Collider>().enabled = false;
+            case Direction.Left:
+                isCulled = false;
 
-                                for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
-                                {
-                                    displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
-                                }
+                for (int x = (int)maxDisplayMaxSize.x - 1; x >= 0 ; x--)
+                {
+                    for (int y = 0; y < maxDisplayMaxSize.y; y++)
+                    {
+                        //Last Row
+                        if(x == (int)maxDisplayMaxSize.x - 1)
+                        {
+                            if (displayMap[x, y] != null)
+                            {
+                                displayMap[x, y].gameObject.SetActive(false);
 
                                 foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
-                                    unit.GetComponent<Renderer>().enabled = false;
-                                    unit.GetComponent<Collider>().enabled = false;
+                                    unit.rendererCpn.enabled = false;
+                                    unit.colliderCpn.enabled = false;
                                 }
 
                                 if (displayMap[x, y].building != null)
                                 {
-                                    displayMap[x, y].building.GetComponent<Renderer>().enabled = false;
-                                    displayMap[x, y].building.GetComponent<Collider>().enabled = false;
+                                    displayMap[x, y].building.rendererCpn.enabled = false;
+                                    displayMap[x, y].building.colliderCpn.enabled = false;
                                 }
                             }
 
-                            //swap array
-                            if (x > 0)
-                                displayMap[x, y] = displayMap[x - 1, y];
-                            else
+                            displayMap[x, y] = displayMap[x - 1, y];
+                        }
+
+                        //First Row
+                        else if(x == 0)
+                        {
+                            if (displayMap[x,y] != null)
                             {
-                                //replace last row with the next row in map
                                 if (displayMap[x, y].position.x - 1 >= 0)
+                                {
                                     displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x - 1, (int)displayMap[x, y].position.y];
+                                }
 
-                                //replace last row with the first row in map
                                 else
-                                    displayMap[x, y] = WorldController.map[WorldController.map.GetLength(0) - 1, (int)displayMap[x, y].position.y];
-
-                                //enable the cell
-                                displayMap[x, y].transform.position = displayMap[x + 1, y].transform.position - new Vector3(2, 0, 0);
-                                displayMap[x, y].GetComponent<Renderer>().enabled = true;
-                                displayMap[x, y].GetComponent<Collider>().enabled = true;
-
-                                for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
                                 {
-                                    displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
+                                    displayMap[x, y] = WorldController.map[(int)WorldController.mapSize.x - 1, (int)displayMap[x, y].position.y];
+                                    if (y == halfDisplayY)
+                                        culledCount--;
                                 }
+
+                                if (!isCulled)
+                                {
+                                    int mapX = (int)displayMap[x, y].position.x + 1;
+                                    if (mapX == WorldController.mapSize.x)
+                                        mapX = 0;
+
+                                    for (int i = 0; i < WorldController.mapSize.y; i++)
+                                    {
+                                        tempCell = WorldController.map[(int)displayMap[x, y].position.x, i];
+                                        tempCell.transform.position = WorldController.map[mapX, i].transform.position + Vector3.left * 2;
+
+                                        foreach (Unit unit in tempCell.unitsList)
+                                            unit.transform.position = tempCell.transform.position + heighFix;
+
+                                        if (tempCell.building != null)
+                                            tempCell.building.transform.position = tempCell.transform.position + heighFix;
+                                    }
+                                    isCulled = true;
+                                }
+
+                                displayMap[x, y].gameObject.SetActive(true);
 
                                 foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
-                                    unit.GetComponent<Renderer>().enabled = true;
-                                    unit.GetComponent<Collider>().enabled = true;
+                                    unit.rendererCpn.enabled = true;
+                                    unit.colliderCpn.enabled = true;
                                 }
 
                                 if (displayMap[x, y].building != null)
                                 {
-                                    displayMap[x, y].building.GetComponent<Renderer>().enabled = true;
-                                    displayMap[x, y].building.GetComponent<Collider>().enabled = true;
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-
-            case (int)Direction.Right:
-                for (int x = 0; x < 50; x++)
-                {
-                    for (int y = 0; y < 32; y++)
-                    {
-                        if (displayMap[x, y] != null)
-                        {
-                            //disable the first row cell
-                            if (x == 0)
-                            {
-                                displayMap[x, y].GetComponent<Renderer>().enabled = false;
-                                displayMap[x, y].GetComponent<Collider>().enabled = false;
-
-                                for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
-                                {
-                                    displayMap[x, y].transform.GetChild(i).gameObject.SetActive(false);
-                                }
-
-                                foreach (Unit unit in displayMap[x, y].unitsList)
-                                {
-                                    unit.GetComponent<Renderer>().enabled = false;
-                                    unit.GetComponent<Collider>().enabled = false;
-                                }
-
-                                if (displayMap[x, y].building != null)
-                                {
-                                    displayMap[x, y].building.GetComponent<Renderer>().enabled = false;
-                                    displayMap[x, y].building.GetComponent<Collider>().enabled = false;
+                                    displayMap[x, y].building.rendererCpn.enabled = true;
+                                    displayMap[x, y].building.colliderCpn.enabled = true;
                                 }
                             }
 
-                            //swap array
-                            if (x < 49)
-                                displayMap[x, y] = displayMap[x + 1, y];
                             else
                             {
-                                //replace last row with the next row in map
-                                if (displayMap[x, y].position.x + 1 < WorldController.map.GetLength(0))
-                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x + 1, (int)displayMap[x, y].position.y];
+                                displayMap[x, y] = null;
+                            }
+                        }
 
-                                //replace last row with the first row in map
-                                else
-                                    displayMap[x, y] = WorldController.map[0, (int)displayMap[x, y].position.y];
+                        else
+                        {
+                            displayMap[x, y] = displayMap[x - 1, y];
+                        }
+                    }
+                }
 
-                                //enable the cell
-                                displayMap[x, y].transform.position = displayMap[x - 1, y].transform.position + new Vector3(2, 0, 0);
-                                displayMap[x, y].GetComponent<Renderer>().enabled = true;
-                                displayMap[x, y].GetComponent<Collider>().enabled = true;
+                break;
 
-                                for (int i = 0; i < displayMap[x, y].transform.childCount; i++)
-                                {
-                                    displayMap[x, y].transform.GetChild(i).gameObject.SetActive(true);
-                                }
+            case Direction.Right:
+                isCulled = false;
+                for (int x = 0; x < maxDisplayMaxSize.x; x++)
+                {
+                    for (int y = 0; y < maxDisplayMaxSize.y; y++)
+                    {
+                        //First Row
+                        if (x == 0)
+                        {
+                            if (displayMap[x, y] != null)
+                            {
+                                displayMap[x, y].gameObject.SetActive(false);
 
                                 foreach (Unit unit in displayMap[x, y].unitsList)
                                 {
-                                    unit.GetComponent<Renderer>().enabled = true;
-                                    unit.GetComponent<Collider>().enabled = true;
+                                    unit.rendererCpn.enabled = false;
+                                    unit.colliderCpn.enabled = false;
                                 }
 
                                 if (displayMap[x, y].building != null)
                                 {
-                                    displayMap[x, y].building.GetComponent<Renderer>().enabled = true;
-                                    displayMap[x, y].building.GetComponent<Collider>().enabled = true;
+                                    displayMap[x, y].building.rendererCpn.enabled = false;
+                                    displayMap[x, y].building.colliderCpn.enabled = false;
                                 }
                             }
+
+                            displayMap[x, y] = displayMap[x + 1, y];
+                        }
+
+                        //Last Row
+                        else if (x == (int)maxDisplayMaxSize.x - 1)
+                        {
+                            if (displayMap[x, y] != null)
+                            {
+                                if (displayMap[x, y].position.x + 1 < WorldController.mapSize.x)
+                                {
+                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x + 1, (int)displayMap[x, y].position.y];
+                                }
+
+                                else
+                                {
+                                    displayMap[x, y] = WorldController.map[0, (int)displayMap[x, y].position.y];
+                                    if (y == halfDisplayY)
+                                        culledCount++;
+                                    Debug.Log(culledCount);
+                                }
+
+                                if (!isCulled)
+                                {
+                                    int mapX = (int)displayMap[x, y].position.x - 1;
+                                    if (mapX == -1)
+                                        mapX = (int)WorldController.mapSize.x - 1;
+
+                                    for (int i = 0; i < WorldController.mapSize.y; i++)
+                                    {
+                                        tempCell = WorldController.map[(int)displayMap[x, y].position.x, i];
+                                        tempCell.transform.position = WorldController.map[mapX, i].transform.position + Vector3.right * 2;
+                                        
+                                        foreach (Unit unit in tempCell.unitsList)
+                                            unit.transform.position = tempCell.transform.position + heighFix;
+
+                                        if (tempCell.building != null)
+                                            tempCell.building.transform.position = tempCell.transform.position + heighFix;
+                                    }
+                                    isCulled = true;
+                                }
+
+                                displayMap[x, y].gameObject.SetActive(true);
+
+                                foreach (Unit unit in displayMap[x, y].unitsList)
+                                {
+                                    unit.rendererCpn.enabled = true;
+                                    unit.colliderCpn.enabled = true;
+                                }
+
+                                if (displayMap[x, y].building != null)
+                                {
+                                    displayMap[x, y].building.rendererCpn.enabled = true;
+                                    displayMap[x, y].building.colliderCpn.enabled = true;
+                                }
+                            }
+
+                            else
+                            {
+                                displayMap[x, y] = null;
+                            }
+                        }
+
+                        else
+                        {
+                            displayMap[x, y] = displayMap[x + 1, y];
                         }
                     }
                 }
-                break;
-
-            default:
                 break;
         }
-    }
 
+        if (culledCount <= -10 || culledCount >= 10)
+        {
+            MoveCamera(currentMiddleCell);
+        }
+    }
 }
