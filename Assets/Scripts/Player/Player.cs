@@ -11,6 +11,10 @@ public class Player : MonoBehaviour
     //Unit List
     public List<Unit> unitList = new List<Unit>();
 
+    //Turn Function
+    public WorldController.PlayerStartFunction playerStartFunction;
+    public WorldController.PlayerEndFunction playerEndFunction;
+    
     //Testing
     public int buildNum = 0;
 

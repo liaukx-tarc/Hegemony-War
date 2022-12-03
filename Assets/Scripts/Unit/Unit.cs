@@ -132,6 +132,16 @@ public class Unit : MonoBehaviour
         }
     }
 
+    public void Move(MapCell targetPos)
+    {
+
+    }
+
+    public void AutoMove()
+    {
+
+    }
+
     public void CheckPath(MapCell targetPos)
     {
         StopAllCoroutines();

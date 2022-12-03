@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static WorldController;
 
 public class WorldController : MonoBehaviour
 {
@@ -19,6 +20,9 @@ public class WorldController : MonoBehaviour
     //UI Controller
     static public UI_Controller UI;
 
+    //Turn Button
+    public TurnButton turnButton;
+
     //Unit List
     static public List<Unit> activeUnitList = new List<Unit>();
     static public List<Unit> movingUnitList = new List<Unit>();
@@ -34,6 +38,7 @@ public class WorldController : MonoBehaviour
     {
         turn = 0;
         UI = GameObject.FindGameObjectWithTag("UI").GetComponent<UI_Controller>();
+        nextTurnFunction += turnButton.ChangeTurnText;
         InitializeWorld();
     }
 
@@ -43,45 +48,27 @@ public class WorldController : MonoBehaviour
         worldGenerator.GetComponent<MapCreate>().GenerateWorld();
         worldGenerator.GetComponent<PlayerCreate>().CreatePlayer();
         worldGenerator.GetComponent<UnitSpawn>().GenerateUnit();
+
+        GameStart();
     }
 
-    IEnumerator endTurnCoroutine;
-
-    public delegate void TurnEndFunction();
-    public static TurnEndFunction turnEndFunction;
-
-    public void NextTurn()
+    //Testing Function
+    public void AIAutoEnd()
     {
-        endTurnCoroutine = EndTurn();
-        StartCoroutine(endTurnCoroutine);
-        StopCoroutine(endTurnCoroutine);
+        Debug.Log(currentPlayer.name + " End");
+
+        if (playerEndFunction != null)
+            playerEndFunction();
+        PlayerStart();
     }
 
-    IEnumerator EndTurn()
+    void GameStart()
     {
-        allUnitMove = true;
+        currentPlayer = playerList[0];
+        playerStartFunction += currentPlayer.playerStartFunction;
+        playerEndFunction += currentPlayer.playerEndFunction;
 
-        foreach (Unit unit in playerList[0].unitList /*current player*/)
-        {
-            if(!unit.isAction)
-            {
-                allUnitMove = false;
-                break;
-            }
-        }
-
-        if (!allUnitMove)
-            yield return null;
-        else
-            TurnStart();
-    }
-
-    public delegate void StartTurnFunction();
-    public static StartTurnFunction startTurnFunction;
-
-    public void TurnStart()
-    {
-        turn++;
+        cameraScirpt.StartCamera(currentPlayer.unitList[0].currentPos);
 
         foreach (Unit unit in currentPlayer.unitList)
         {
@@ -93,9 +80,96 @@ public class WorldController : MonoBehaviour
                 activeUnitList.Add(unit);
         }
 
-        if(startTurnFunction != null)
-            startTurnFunction();
+        if (playerStartFunction != null)
+            playerStartFunction();
+
+        NextTurn();
     }
+
+    public delegate void NextTurnFunction();
+    public static NextTurnFunction nextTurnFunction;
+
+    void NextTurn()
+    {
+        turn++;
+        if (nextTurnFunction != null)
+            nextTurnFunction();
+    }
+
+    public delegate void PlayerEndFunction();
+    public static PlayerEndFunction playerEndFunction;
+
+    IEnumerator PlayerEnd()
+    {
+        allUnitMove = true;
+
+        foreach (Unit unit in currentPlayer.unitList)
+        {
+            if(!unit.isAction)
+            {
+                allUnitMove = false;
+                break;
+            }
+        }
+
+        if (!allUnitMove)
+            yield return null;
+        else
+        {
+            if (playerEndFunction != null)
+                playerEndFunction();
+
+            PlayerStart();
+        }
+            
+    }
+
+    public delegate void PlayerStartFunction();
+    public static PlayerStartFunction playerStartFunction;
+
+    void PlayerStart()
+    {
+        playerStartFunction -= currentPlayer.playerStartFunction;
+        playerEndFunction -= currentPlayer.playerEndFunction;
+
+        int nextPlayerIndex = playerList.IndexOf(currentPlayer) + 1;
+        if (nextPlayerIndex == playerList.Count)
+        {
+            NextTurn();
+            nextPlayerIndex = 0;
+        }
+
+        currentPlayer = playerList[nextPlayerIndex];
+        playerStartFunction += currentPlayer.playerStartFunction;
+        playerEndFunction += currentPlayer.playerEndFunction;
+
+        Debug.Log(currentPlayer.name + " Start");
+
+        movingUnitList.Clear();
+        activeUnitList.Clear();
+
+        foreach (Unit unit in currentPlayer.unitList)
+        {
+            unit.remainMove = unit.template.property.speed; //reset unit remain speed
+
+            if (unit.isMoving)
+                movingUnitList.Add(unit);
+            else
+                activeUnitList.Add(unit);
+        }
+
+        if(playerStartFunction != null)
+            playerStartFunction();
+
+        //Testing
+        if(currentPlayer.GetType() == typeof(AI_Player))
+            AIAutoEnd();
+        else if(currentPlayer.GetType() == typeof(HumanPlayer))
+            cameraScirpt.MoveCamera(currentPlayer.unitList[0].currentPos);
+    }
+
+    //Turn Button Funciton
+    IEnumerator endPlayerCoroutine;
 
     public void TurnBtn()
     {
@@ -111,19 +185,20 @@ public class WorldController : MonoBehaviour
                 unit.startMove = true;
             }
 
-            NextTurn();
+            endPlayerCoroutine = PlayerEnd();
+            StartCoroutine(endPlayerCoroutine);
+            StopCoroutine(endPlayerCoroutine);
         }
     }
 
-
-
     public void NextUnit()
     {
-        HumanPlayer player = (HumanPlayer)playerList[0];
+        HumanPlayer player = (HumanPlayer)currentPlayer;
 
         player.selectedBuilding = null;
         UI.Disable(UI.buildingUI);
 
+        Debug.Log(activeUnitList.Count);
         foreach (Unit unit in activeUnitList)
         {
             if (unit != player.selectedUnit &&
@@ -137,7 +212,7 @@ public class WorldController : MonoBehaviour
             {
                 player.selectedUnit = activeUnitList[0]; //go back to first active unit in the list
                 break;
-            }
+            } 
         }
 
         if (player.selectedUnit != null)

@@ -8,26 +8,30 @@ public class HumanPlayer : Player
 {
     const string MapTag = "Map";
 
+    [Header("Data")]
+    public List<GameObject> projectList = new List<GameObject>();
+
     //Unit select
     public Unit selectedUnit;
     public Building selectedBuilding;
+    MapCell rightSelectedCell;
+    MapCell leftSelectedCell;
+    MapCell previousSelectedCell;
+
+    [Header("Select Cell")]
     public GameObject selectionList;
     public GameObject whiteSelectCell;
     public GameObject yellowSelectCell;
     public GameObject redSelectCell;
     public GameObject greenSelectCell;
     public List<GameObject> blueSelectCellList;
-    MapCell rightSelectedCell;
-    MapCell leftSelectedCell;
-    MapCell previousSelectedCell;
 
     List<MapCell> buildingBlock = new List<MapCell>();
     List<GameObject> previousSelectedList = new List<GameObject>();
-    bool isBuildingSelect = false;
+    public bool isBuildingSelect = false;
+    public int buildingRange = 0;
 
-    int buildingRange = 0;
-
-    bool isMovingSelect = false;
+    public bool isMovingSelect = false;
 
     // Update is called once per frame
     void Update()
@@ -283,35 +287,4 @@ public class HumanPlayer : Player
         WorldController.UI.Enable(WorldController.UI.buildingUI);
         WorldController.UI.buildingName.text = selectedBuilding.name;
     }
-
-    public void Skip()
-    {
-        if (selectedUnit != null)
-        {
-            selectedUnit.isAction = true;
-            WorldController.activeUnitList.Remove(selectedUnit);
-            worldController.NextUnit();
-        }
-            
-    } //Unit Skip Button
-
-    public void Move()
-    {
-        isMovingSelect = true;
-    } //Unit Move Button
-
-    public void DestroyUnit()
-    {
-        unitList.Remove(selectedUnit);
-        selectedUnit.currentPos.unitsList.Remove(selectedUnit);
-        GameObject.Destroy(selectedUnit.gameObject);
-        selectedUnit = null;
-        WorldController.UI.Disable(WorldController.UI.unitUI);
-    } //Unit Destroy Button
-
-    public void Building()
-    {
-        isBuildingSelect = true;
-        buildingRange = 2;
-    } //Unit Build city Button
 }

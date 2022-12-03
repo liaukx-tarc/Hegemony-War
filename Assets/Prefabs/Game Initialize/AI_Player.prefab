@@ -46,3 +46,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitList: []
   buildNum: 0
+  unitListObj: {fileID: 0}
+  buildingListObj: {fileID: 0}

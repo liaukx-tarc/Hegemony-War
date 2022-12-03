@@ -57,7 +57,7 @@ public class UnitDevelopmentProject : MonoBehaviour
         progressBar.maxValue = developCost;
         progressBar.value = 0;
 
-        WorldController.startTurnFunction += ProjectCompleteCheck;
+        WorldController.currentPlayer.playerStartFunction += ProjectCompleteCheck;
     }
 
     int CalculateRemainTurn()
@@ -111,7 +111,7 @@ public class UnitDevelopmentProject : MonoBehaviour
                 break;
         }
 
-        WorldController.startTurnFunction -= ProjectCompleteCheck;
+        WorldController.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
         GameObject.Destroy(this.gameObject);
     }
 }

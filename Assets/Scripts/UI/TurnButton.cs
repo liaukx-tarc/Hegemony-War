@@ -18,11 +18,6 @@ public class TurnButton : MonoBehaviour
     Color nextColor = new Color(0.95f, 0.75f, 0.08f);
     Color nextSelectColor = new Color(0.98f, 0.85f, 0.45f);
 
-    private void Start()
-    {
-        WorldController.startTurnFunction += ChangeTurnText;
-    }
-
     private void Update()
     {
         if (WorldController.activeUnitList.Count != 0)
@@ -48,7 +43,7 @@ public class TurnButton : MonoBehaviour
         }
     }
 
-    void ChangeTurnText()
+    public void ChangeTurnText()
     {
         turnTxt.text = "TURN " + WorldController.turn;
     }

@@ -532,6 +532,11 @@ public class UI_AccessoriesEquip : MonoBehaviour
         UnitTemplate unitTemplate = new UnitTemplate(unitProperty, runtimeFunction);
 
         GameObject tempProject = Instantiate(projectPrefab, projectList);
-        tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.playerList[0], building, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitTemplate);
+        tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitTemplate);
+        if(WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+            humanPlayer.projectList.Add(tempProject);
+        }
     }
 }

@@ -55,10 +55,6 @@ public class UnitSpawn : MonoBehaviour
             }
         }
 
-        CameraControl cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraControl>();
-        cam.StartCamera(WorldController.playerList[0].unitList[0].currentPos);
-        GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().TurnStart();//inti complete start turn
-
         Destroy(this.gameObject);
     }
 }

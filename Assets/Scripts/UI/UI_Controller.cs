@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -62,13 +63,62 @@ public class UI_Controller : MonoBehaviour
         speedVariable.text = remainMovement.ToString();
     }
 
+    public void UnitSkip()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+            if (humanPlayer.selectedUnit != null)
+            {
+                humanPlayer.selectedUnit.isAction = true;
+                WorldController.activeUnitList.Remove(humanPlayer.selectedUnit);
+                GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().NextUnit();
+            }
+        }
+    } //Unit Skip Button
+
+    public void UnitMove()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+            humanPlayer.isMovingSelect = true;
+        }
+    } //Unit Move Button
+
+    public void DestroyUnit()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+
+            humanPlayer.unitList.Remove(humanPlayer.selectedUnit);
+            humanPlayer.selectedUnit.currentPos.unitsList.Remove(humanPlayer.selectedUnit);
+            GameObject.Destroy(humanPlayer.selectedUnit.gameObject);
+            humanPlayer.selectedUnit = null;
+            Disable(unitUI);
+        }
+    } //Unit Destroy Button
+
+    public void UnitBuilding()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+            humanPlayer.isBuildingSelect = true;
+            Debug.Log("Building Testing");
+            humanPlayer.buildingRange = 2;
+        }
+            
+    } //Unit Build city Button
+
+
     //Lens
     [Header("Lens")]
     public GameObject lens1;
     public GameObject lens2;
     public GameObject lens3;
     bool lenState = false;
-    
 
     public void lensBtn()
     {
@@ -103,6 +153,9 @@ public class UI_Controller : MonoBehaviour
         accessoriesUI.UI_Start();
 
         UD_Position = UD_Transform.anchoredPosition;
+
+        WorldController.playerEndFunction += DisablePlayerProject;
+        WorldController.playerStartFunction += ActivePlayerProject;
 
         Debug.Log("Testing");
         UD_transportType = TransportType.Vechicle;
@@ -174,5 +227,29 @@ public class UI_Controller : MonoBehaviour
         }
 
         //Open Unit Template Select UI
+    }
+
+    public void DisablePlayerProject()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
+            foreach (GameObject project in player.projectList)
+            {
+                project.SetActive(false);
+            }
+        }
+    }
+
+    public void ActivePlayerProject()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
+            foreach (GameObject project in player.projectList)
+            {
+                project.SetActive(true);
+            }
+        }
     }
 }
