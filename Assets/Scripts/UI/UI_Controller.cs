@@ -4,6 +4,8 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static UI_Controller;
+using static UnityEngine.UI.CanvasScaler;
 
 public class UI_Controller : MonoBehaviour
 {
@@ -17,12 +19,20 @@ public class UI_Controller : MonoBehaviour
     //Building UI
     [Header("Building UI")]
     public GameObject buildingUI;
+    public static UI_Building buildingUIController;
     public TextMeshProUGUI buildingName;
+
+    //Delegate
+    public delegate void CloseAllUIFunction();
+    public static CloseAllUIFunction closeAllUIFunction;
 
     void Start()
     {
         canvas = GetComponentInChildren<Canvas>();
+        buildingUIController = buildingUI.GetComponent<UI_Building>();
+        UnitUIStart();
         UD_Start();
+        unitTemplateListUI.UnitTemplateUI_Start();
     }
 
     public void Update()
@@ -31,16 +41,9 @@ public class UI_Controller : MonoBehaviour
             UD_Close();
     }
 
-    //Enable UI component
-    public void Enable(GameObject ui)
+    private void FixedUpdate()
     {
-        ui.SetActive(true);
-    }
-
-    //Disable UI component
-    public void Disable(GameObject ui)
-    {
-        ui.SetActive(false);
+        UnitUIUpdate();
     }
 
     //Unit UI
@@ -53,14 +56,39 @@ public class UI_Controller : MonoBehaviour
     public TextMeshProUGUI rangeVariable;
     public TextMeshProUGUI speedVariable;
 
-    public void showUnit(string name, int maxHp, int currentHp, int armor, int damage, float remainMovement)
+    public Unit showingUnit;
+    public bool unitUIOn = false;
+
+    public void UnitUIStart()
     {
-        unitName.text = name;
-        lifeVariable.text = currentHp.ToString() + " / " + maxHp.ToString(); 
-        armorVariable.text = armor.ToString();
-        damageVariable.text = damage.ToString();
-        rangeVariable.text = "0";
-        speedVariable.text = remainMovement.ToString();
+        closeAllUIFunction += CloseUnitUI;
+    }
+
+    public void OpenUnitUI(Unit unit)
+    {
+        showingUnit = unit;
+        unitUIOn = true;
+        unitUI.SetActive(true);
+    }
+
+    public void CloseUnitUI()
+    {
+        showingUnit = null;
+        unitUIOn = false;
+        unitUI.SetActive(false);
+    }
+
+    void UnitUIUpdate()
+    {
+        if(unitUIOn)
+        {
+            unitName.text = showingUnit.name;
+            lifeVariable.text = showingUnit.currentHp.ToString() + " / " + showingUnit.property.maxHp.ToString();
+            armorVariable.text = showingUnit.property.armor.ToString();
+            damageVariable.text = showingUnit.damage.ToString();
+            rangeVariable.text = "0";
+            speedVariable.text = showingUnit.remainMove.ToString();
+        }
     }
 
     public void UnitSkip()
@@ -68,10 +96,10 @@ public class UI_Controller : MonoBehaviour
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
-            if (humanPlayer.selectedUnit != null)
+            if (PlayerController.selectedUnit != null)
             {
-                humanPlayer.selectedUnit.isAction = true;
-                WorldController.activeUnitList.Remove(humanPlayer.selectedUnit);
+                PlayerController.selectedUnit.isAction = true;
+                WorldController.activeUnitList.Remove(PlayerController.selectedUnit);
                 GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().NextUnit();
             }
         }
@@ -82,7 +110,7 @@ public class UI_Controller : MonoBehaviour
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
-            humanPlayer.isMovingSelect = true;
+            PlayerController.isMoving = true;
         }
     } //Unit Move Button
 
@@ -92,11 +120,11 @@ public class UI_Controller : MonoBehaviour
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
 
-            humanPlayer.unitList.Remove(humanPlayer.selectedUnit);
-            humanPlayer.selectedUnit.currentPos.unitsList.Remove(humanPlayer.selectedUnit);
-            GameObject.Destroy(humanPlayer.selectedUnit.gameObject);
-            humanPlayer.selectedUnit = null;
-            Disable(unitUI);
+            humanPlayer.unitList.Remove(PlayerController.selectedUnit);
+            PlayerController.selectedUnit.currentPos.unitsList.Remove(PlayerController.selectedUnit);
+            Destroy(PlayerController.selectedUnit.gameObject);
+            PlayerController.selectedUnit = null;
+            WorldController.UI.CloseUnitUI();
         }
     } //Unit Destroy Button
 
@@ -105,9 +133,9 @@ public class UI_Controller : MonoBehaviour
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
-            humanPlayer.isBuildingSelect = true;
+            PlayerController.isBuilding= true;
             Debug.Log("Building Testing");
-            humanPlayer.buildingRange = 2;
+            PlayerController.Building.buildingRange = 2;
         }
             
     } //Unit Build city Button
@@ -132,30 +160,38 @@ public class UI_Controller : MonoBehaviour
     [Header("Unit Development")]
     public RectTransform UD_Transform;
     public TextMeshProUGUI UD_title;
-    public static bool UD_State = false;
     Vector2 UD_Position;
 
     //Uint Development Progress
     const string UDProgressTitle = "Unit Development Progress";
-    public GameObject progressUI;
+    public GameObject progressUIObj;
+    public static UI_Progress progressUI;
 
     //Accessories Eqiup
     const string UnitDevelopmentTitle = "Unit Development";
     const string UnitModifyTitle = "Unit Modify";
     const string UnitUpgradeTitle = "Unit Upgrade";
-    public GameObject accessoriesEquipUI;
+    public GameObject accessoriesEquipUIObj;
     public static UI_AccessoriesEquip accessoriesUI;
     public static TransportType UD_transportType;
 
+    //Unit Template UI
+    public static UI_UnitTemplateList unitTemplateListUI;
+    public GameObject unitTemplateListObj;
+
     void UD_Start()
     {
-        accessoriesUI = accessoriesEquipUI.GetComponentInChildren<UI_AccessoriesEquip>();
+        accessoriesUI = accessoriesEquipUIObj.GetComponentInChildren<UI_AccessoriesEquip>();
+        progressUI = progressUIObj.GetComponentInChildren<UI_Progress>();
+        unitTemplateListUI = unitTemplateListObj.GetComponent<UI_UnitTemplateList>();
         accessoriesUI.UI_Start();
 
         UD_Position = UD_Transform.anchoredPosition;
 
-        WorldController.playerEndFunction += DisablePlayerProject;
-        WorldController.playerStartFunction += ActivePlayerProject;
+        WorldController.playerStartFunction += progressUI.ActivePlayerProject;
+        WorldController.playerEndFunction += progressUI.DisablePlayerProject;
+
+        closeAllUIFunction += UD_Close;
 
         Debug.Log("Testing");
         UD_transportType = TransportType.Vechicle;
@@ -163,93 +199,70 @@ public class UI_Controller : MonoBehaviour
 
     public void UD_Close()
     {
-        UD_State = !UD_State;
+        progressUIObj.SetActive(false);
+        accessoriesUI.gameObject.SetActive(false);
 
-        progressUI.SetActive(UD_State);
-        accessoriesUI.gameObject.SetActive(UD_State);
-
-        UD_Transform.gameObject.SetActive(UD_State);
+        UD_Transform.gameObject.SetActive(false);
     }
 
     public void OpenUDProgressUI()
     {
-        accessoriesUI.gameObject.SetActive(false);
+        closeAllUIFunction();
 
-        UD_State = !UD_State;
-        UD_Transform.gameObject.SetActive(UD_State);
-        progressUI.gameObject.SetActive(UD_State);
+        UD_Transform.gameObject.SetActive(true);
+        progressUI.gameObject.SetActive(true);
 
-        if (UD_State)
-        {
-            UD_Transform.anchoredPosition = UD_Position;
-            UD_title.text = UDProgressTitle;
-        }
+        progressUI.infoPanel.SetActive(false);
+        selectedUnitTemplateProperty = null;
+
+        UD_Transform.anchoredPosition = UD_Position;
+        UD_title.text = UDProgressTitle;
     }
 
     public void OpenUnitDevelopmentUI()
     {
-        UD_State = !UD_State;
-        UD_Transform.gameObject.SetActive(UD_State);
-        accessoriesUI.gameObject.SetActive(UD_State);
+        closeAllUIFunction();
 
-        if (UD_State)
-        {
-            UD_Transform.anchoredPosition = UD_Position;
-            UD_title.text = UnitDevelopmentTitle;
-        }
+        UD_Transform.gameObject.SetActive(true);
+        accessoriesUI.gameObject.SetActive(true);
+
+        UD_Transform.anchoredPosition = UD_Position;
+        UD_title.text = UnitDevelopmentTitle;
 
         accessoriesUI.UIOpen(ProjectType.UnitDevelopment, UD_transportType, null);
     }
 
     public void OpenUnitModifyUI()
     {
-        UD_State = !UD_State;
-        UD_Transform.gameObject.SetActive(UD_State);
+        closeAllUIFunction();
 
-        if (UD_State)
-        {
-            UD_Transform.anchoredPosition = UD_Position;
-            UD_title.text = UnitModifyTitle;
-        }
+        UD_Transform.gameObject.SetActive(true);
+
+        UD_Transform.anchoredPosition = UD_Position;
+        UD_title.text = UnitModifyTitle;
 
         //Open Unit Template Select UI
-    }    
+    }
 
     public void OpenUnitUpgradeUI()
     {
-        UD_State = !UD_State;
-        UD_Transform.gameObject.SetActive(UD_State);
+        closeAllUIFunction();
 
-        if (UD_State)
-        {
-            UD_Transform.anchoredPosition = UD_Position;
-            UD_title.text = UnitUpgradeTitle;
-        }
+        UD_Transform.gameObject.SetActive(true);
+
+        UD_Transform.anchoredPosition = UD_Position;
+        UD_title.text = UnitUpgradeTitle;
 
         //Open Unit Template Select UI
     }
 
-    public void DisablePlayerProject()
-    {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
-            foreach (GameObject project in player.projectList)
-            {
-                project.SetActive(false);
-            }
-        }
-    }
+    public static UnitProperty selectedUnitTemplateProperty;
 
-    public void ActivePlayerProject()
+    public void OpenTemplateDetail()
     {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
-            foreach (GameObject project in player.projectList)
-            {
-                project.SetActive(true);
-            }
-        }
+        progressUI.gameObject.SetActive(false);
+        accessoriesUI.gameObject.SetActive(true);
+
+        accessoriesUI.showTemplateDetail(selectedUnitTemplateProperty);
     }
 }

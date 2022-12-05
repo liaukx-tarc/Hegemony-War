@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 4686256108576180472}
   - component: {fileID: 2359006800268201159}
   m_Layer: 5
-  m_Name: Unit Development Program
+  m_Name: UD Project
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -357,7 +357,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4686256108576180476}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 4686256108576180472}
+        m_TargetAssemblyTypeName: UnitDevelopmentProject, Assembly-CSharp
+        m_MethodName: ShowDetail
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &4686256108576180472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -370,6 +382,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0160aabdd1ba77d43b8bad7c16b9719a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   nameText: {fileID: 4686256109552519293}
   turnText: {fileID: 4686256110034092713}
   progressBar: {fileID: 4686256109482416536}
@@ -380,6 +393,9 @@ MonoBehaviour:
   projectName: 
   projectBudget: 0
   remainDevelopCost: 0
+  originalTemplate: {fileID: 0}
+  unitTemplatePrefab: {fileID: 3817682229888616295, guid: deb05946918d40c4bae130bf4b4c1229,
+    type: 3}
   developmentPoint: 0
   developmentCenters: []
 --- !u!114 &2359006800268201159
@@ -558,7 +574,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 165, y: 70}
+  m_SizeDelta: {x: 170, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3505570257794154094
 MonoBehaviour:
@@ -623,7 +639,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 650, y: 50}
+  m_SizeDelta: {x: 630, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4686256109482416536
 MonoBehaviour:
@@ -917,7 +933,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 250, y: 80}
+  m_SizeDelta: {x: 260, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4686256109611346239
 CanvasRenderer:
@@ -1812,7 +1828,7 @@ PrefabInstance:
     - target: {fileID: 346075622193409399, guid: 581e3e49be9093247acaff03fb053812,
         type: 3}
       propertyPath: m_text
-      value: 1000
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 346075622193409399, guid: 581e3e49be9093247acaff03fb053812,
         type: 3}

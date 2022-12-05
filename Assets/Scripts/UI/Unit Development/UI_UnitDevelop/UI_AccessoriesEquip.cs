@@ -157,6 +157,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
     //Open UI
     public ProjectType projectType;
+    public UnitTemplate originalTemplate;
     public Building building;
 
     public TextMeshProUGUI createBtnText;
@@ -178,6 +179,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
             case ProjectType.UnitModify:
                 transportDropdown.dropdown.interactable = false;
+                this.originalTemplate = originalTemplate;
                 transportDropdown.text.text = originalTemplate.property.transportProperty.transportName;
                 ChangeAccessoriesSelect(transportType);
                 createBtnText.text = Modify;
@@ -188,7 +190,8 @@ public class UI_AccessoriesEquip : MonoBehaviour
                 break;
         }
 
-        
+        createButton.SetActive(true);
+        costSelection.SetActive(true);
     }
 
     //Change Transport
@@ -222,6 +225,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
     public void ChangeTransport(TransportProperty transport)
     {
         transportProperty = transport;
+        unitNameInput.interactable = true;
 
         for (int i = 0; i < heavyWeaponSlots.Length; i++)
         {
@@ -432,6 +436,9 @@ public class UI_AccessoriesEquip : MonoBehaviour
         qualityPercentage = 100;
         simplifyPercentage = 100;
         reduceCostPercentage = 100;
+
+        unitName = null;
+        unitNameInput.text = null;
     }
 
     public void equipAccessory(AccessoryProperty accessory, int slotIndex)
@@ -515,7 +522,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
         }
     }
 
-    private static int CompareListByUnitTag(UnitTag i1, UnitTag i2)
+    public static int CompareListByUnitTag(UnitTag i1, UnitTag i2)
     {
         return i1.CompareTo(i2);
     }
@@ -523,20 +530,154 @@ public class UI_AccessoriesEquip : MonoBehaviour
     [Header("CreateProject")]
     public GameObject projectPrefab;
     public Transform projectList;
+    public Sprite defualtIcon;
+
+    UnitProperty unitProperty;
 
     public void CreateProject()
     {
-        UnitProperty unitProperty = ScriptableObject.CreateInstance<UnitProperty>();
-        unitProperty.Create(finalMaxHp, finalArmor, finalDamage, range, speed, weight, finalBudgetCost, finalDevelopCost, finalMaintanceCost, finalProduceCost, transportProperty, equipedAccessories, slotsCount);
-
-        UnitTemplate unitTemplate = new UnitTemplate(unitProperty, runtimeFunction);
+        unitProperty = ScriptableObject.CreateInstance<UnitProperty>();
+        unitProperty.Create(unitName, defualtIcon, finalMaxHp, finalArmor, finalDamage, range, speed, weight, finalBudgetCost, finalDevelopCost, finalMaintanceCost, finalProduceCost, transportProperty, equipedAccessories, slotsCount);
 
         GameObject tempProject = Instantiate(projectPrefab, projectList);
-        tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitTemplate);
+        projectName = unitName + " Project";
+
+        switch (projectType)
+        {
+            case ProjectType.UnitDevelopment:
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitProperty, runtimeFunction);
+                break;
+
+            case ProjectType.UnitModify:
+
+            case ProjectType.UnitUpgrade:
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction); //same Function
+                break;
+
+            default:
+                break;
+        }
+
         if(WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
             humanPlayer.projectList.Add(tempProject);
         }
+    }
+
+    public string unitName;
+    public TMP_InputField unitNameInput;
+
+    public void onChangeName()
+    {
+        unitName = unitNameInput.text;
+    }
+
+    public GameObject createButton;
+    public GameObject costSelection;
+    public GameObject filterButton;
+
+    public void showTemplateDetail(UnitProperty property)
+    {
+        ChangeTransport(property.transportProperty);
+
+        unitNameInput.text = property.unitName;
+        unitNameInput.interactable = false;
+
+        maxHpText.text = property.maxHp.ToString();
+        armorText.text = property.armor.ToString();
+        damageText.text = property.damage.ToString();
+        rangeText.text = property.range.ToString();
+        speedText.text = property.speed.ToString();
+        weightText.text = property.weight.ToString();
+
+        budgetCostText.text = "- " + property.budgetCost.ToString();
+        developCostText.text = property.developCost.ToString();
+        maintanceCostText.text = property.maintanceCost.ToString();
+        produceCostText.text = property.produceCost.ToString();
+
+        transportDropdown.text.text = property.transportProperty.transportName;
+
+        foreach (AccessorySelection accessorySelection in accessoriesListAll)
+        {
+            accessorySelection.gameObject.SetActive(false);
+        }
+
+        unitTagsList = new List<UnitTag>();
+
+        for (int i = 0; i < property.accessoryProperty.Length; i++)
+        {
+            AccessoryProperty accessory = property.accessoryProperty[i];
+
+            if (accessory == null)
+                continue;
+                
+
+            if (!unitTagsList.Contains(accessory.accessoryTag) && accessory.accessoryTag != UnitTag.None)
+            {
+                unitTagsList.Add(accessory.accessoryTag);
+            }
+
+            if (i < 3) //Heavy Weapon
+            {
+                heavyWeaponSlots[i].accessory = accessory;
+                heavyWeaponSlots[i].showingIcon.sprite = accessory.icon;
+                heavyWeaponSlots[i].showingIcon.enabled = true;
+                heavyWeaponSlots[i].isEquip = true;
+            }
+
+            else if (i < 6)
+            {
+                mediumWeaponSlots[i - 3].accessory = accessory;
+                mediumWeaponSlots[i - 3].showingIcon.sprite = accessory.icon;
+                mediumWeaponSlots[i - 3].showingIcon.enabled = true;
+                mediumWeaponSlots[i - 3].isEquip = true;
+            }
+
+            else if (i < 9)
+            {
+                lightWeaponSlots[i - 6].accessory = accessory;
+                lightWeaponSlots[i - 6].showingIcon.sprite = accessory.icon;
+                lightWeaponSlots[i - 6].showingIcon.enabled = true;
+                lightWeaponSlots[i - 6].isEquip = true;
+            }
+
+            else if (i < 12)
+            {
+                defenceEquipmentSlots[i - 9].accessory = accessory;
+                defenceEquipmentSlots[i - 9].showingIcon.sprite = accessory.icon;
+                defenceEquipmentSlots[i - 9].showingIcon.enabled = true;
+                defenceEquipmentSlots[i - 9].isEquip = true;
+            }
+
+            else if (i < 16)
+            {
+                auxiliaryEquipmentSlots[i - 12].accessory = accessory;
+                auxiliaryEquipmentSlots[i - 12].showingIcon.sprite = accessory.icon;
+                auxiliaryEquipmentSlots[i - 12].showingIcon.enabled = true;
+                auxiliaryEquipmentSlots[i - 12].isEquip = true;
+            }
+
+            else if (i < 17)
+            {
+                fireControlSystemSlots.accessory = accessory;
+                fireControlSystemSlots.showingIcon.sprite = accessory.icon;
+                fireControlSystemSlots.showingIcon.enabled = true;
+                fireControlSystemSlots.isEquip = true;
+            }
+
+            else if (i < 18)
+            {
+                engineSlots.accessory = accessory;
+                engineSlots.showingIcon.sprite = accessory.icon;
+                engineSlots.showingIcon.enabled = true;
+                engineSlots.isEquip = true;
+            }
+        }
+
+        ChangeTag();
+        createButton.SetActive(false);
+        costSelection.SetActive(false);
+        filterButton.SetActive(false);
     }
 }

@@ -8,6 +8,10 @@ public class Building : MonoBehaviour
     public Renderer rendererCpn;
     public Collider colliderCpn;
 
+    //Data
+    public int buildingRange;
+    public BuildingProperty buildingProperty;
+
     void Start()
     {
 

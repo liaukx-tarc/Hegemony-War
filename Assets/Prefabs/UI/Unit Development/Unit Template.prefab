@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 3817682229888616292}
   - component: {fileID: 3817682229888616293}
   - component: {fileID: 3817682229888616291}
-  - component: {fileID: 3817682229888616290}
-  - component: {fileID: 3817682229888616289}
   - component: {fileID: 6147181457888674654}
+  - component: {fileID: 3817682229888616290}
+  - component: {fileID: -2247262036839742733}
   m_Layer: 5
   m_Name: Unit Template
   m_TagString: Untagged
@@ -102,6 +102,32 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &6147181457888674654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3817682229888616295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 15
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 3
+  m_Spacing: 10
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!114 &3817682229888616290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,8 +171,20 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3817682229888616293}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
---- !u!114 &3817682229888616289
+      m_Calls:
+      - m_Target: {fileID: -2247262036839742733}
+        m_TargetAssemblyTypeName: UnitTemplate, Assembly-CSharp
+        m_MethodName: UnitTemplateDetail
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &-2247262036839742733
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -155,47 +193,24 @@ MonoBehaviour:
   m_GameObject: {fileID: 3817682229888616295}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0160aabdd1ba77d43b8bad7c16b9719a, type: 3}
+  m_Script: {fileID: 11500000, guid: 300b96cf1656c41448dced88eba7a28e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nameText: {fileID: 0}
-  turnText: {fileID: 0}
-  progressBar: {fileID: 0}
-  projectType: 0
-  completeDPText: {fileID: 0}
-  maxDPText: {fileID: 0}
-  budgetText: {fileID: 0}
-  projectName: 
-  projectBudget: 0
-  remainDevelopCost: 0
-  developmentPoint: 0
-  developmentCenters: []
---- !u!114 &6147181457888674654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3817682229888616295}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Padding:
-    m_Left: 15
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 3
-  m_Spacing: 10
-  m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 0
-  m_ChildControlHeight: 0
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
+  property: {fileID: 0}
+  iconBackground: {fileID: 8465586166054105962}
+  icon: {fileID: 8465586165715188577}
+  unitNameText: {fileID: 8465586166128067940}
+  maxHpText: {fileID: 8465586165024148532}
+  armorText: {fileID: 8465586164336245567}
+  damageText: {fileID: 8465586164622887593}
+  rangeText: {fileID: 8465586166222599646}
+  speedText: {fileID: 8465586164635457413}
+  maintanceCostText: {fileID: 8465586164198377901}
+  produceCostText: {fileID: 8465586164809371348}
+  infantryColor: {r: 0.6117647, g: 0.53333336, b: 1, a: 1}
+  vechicleColor: {r: 0.29803923, g: 0.81960785, b: 0.21568628, a: 1}
+  aircarftColor: {r: 0.9843137, g: 0.77254903, b: 0.19215687, a: 1}
+  shipColor: {r: 0, g: 0.65882355, b: 1, a: 1}
 --- !u!1 &8465586164130609178
 GameObject:
   m_ObjectHideFlags: 0

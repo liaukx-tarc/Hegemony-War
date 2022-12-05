@@ -35,7 +35,7 @@ public class UnitSpawn : MonoBehaviour
                 tempUnit.name = "Unit " + (i + 1);
                
                 Unit unit = tempUnit.GetComponent<Unit>();
-                unit.template = new UnitTemplate(unitProperty, null);
+                unit.property = unitProperty;
                 unit.InitializeUnit();
 
                 if (player is HumanPlayer)

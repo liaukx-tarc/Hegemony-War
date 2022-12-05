@@ -1,8 +1,13 @@
+using System.Globalization;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "UnitProperty", menuName = "ScriptableObject/UnitProperty")]
 public class UnitProperty : ScriptableObject
 {
+    [Header("Info")]
+    public string unitName;
+    public Sprite unitIcon;
+
     [Header("Property")]
     public int maxHp = 0;
     public int armor = 0;
@@ -20,8 +25,10 @@ public class UnitProperty : ScriptableObject
     public TransportProperty transportProperty;
     public AccessoryProperty[] accessoryProperty;
 
-    public void Create(int maxHp, int armor, int damage, int range, int speed, int weight, int budgetCost, int developCost, int maintanceCost, int produceCost, TransportProperty transportProperty, AccessoryProperty[] accessoryProperty, int accessorySlotsNum)
+    public void Create(string name, Sprite icon, int maxHp, int armor, int damage, int range, int speed, int weight, int budgetCost, int developCost, int maintanceCost, int produceCost, TransportProperty transportProperty, AccessoryProperty[] accessoryProperty, int accessorySlotsNum)
     {
+        unitName = name;
+        unitIcon = icon;
         this.maxHp = maxHp;
         this.armor = armor;
         this.damage = damage;
@@ -34,7 +41,11 @@ public class UnitProperty : ScriptableObject
         this.produceCost = produceCost;
         this.transportProperty = transportProperty;
 
-        accessoryProperty = new AccessoryProperty[accessorySlotsNum];
-        this.accessoryProperty = accessoryProperty;
+        this.accessoryProperty = new AccessoryProperty[accessorySlotsNum];
+        
+        for (int i = 0; i < accessoryProperty.Length; i++)
+        {
+            this.accessoryProperty[i] = accessoryProperty[i];
+        }
     }
 }

@@ -1,14 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.UI.CanvasScaler;
 using static WorldController;
 
 public class WorldController : MonoBehaviour
 {
     static public int turn;
     
+    //Player Controller
+    static public PlayerController playerController;
+
     //Player
     static public List<Player> playerList = new List<Player>();
     static public Player currentPlayer;
@@ -25,7 +30,7 @@ public class WorldController : MonoBehaviour
 
     //Unit List
     static public List<Unit> activeUnitList = new List<Unit>();
-    static public List<Unit> movingUnitList = new List<Unit>();
+    public List<Unit> movingUnitList = new List<Unit>();
 
     public CameraControl cameraScirpt;
 
@@ -38,8 +43,15 @@ public class WorldController : MonoBehaviour
     {
         turn = 0;
         UI = GameObject.FindGameObjectWithTag("UI").GetComponent<UI_Controller>();
+        playerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<PlayerController>();
         nextTurnFunction += turnButton.ChangeTurnText;
         InitializeWorld();
+    }
+
+    public List<Unit> testingList;
+    private void Update()
+    {
+        testingList = activeUnitList;
     }
 
     void InitializeWorld()
@@ -48,7 +60,7 @@ public class WorldController : MonoBehaviour
         worldGenerator.GetComponent<MapCreate>().GenerateWorld();
         worldGenerator.GetComponent<PlayerCreate>().CreatePlayer();
         worldGenerator.GetComponent<UnitSpawn>().GenerateUnit();
-
+        UI_Controller.buildingUIController.BuildingUI_Start();
         GameStart();
     }
 
@@ -72,9 +84,9 @@ public class WorldController : MonoBehaviour
 
         foreach (Unit unit in currentPlayer.unitList)
         {
-            unit.remainMove = unit.template.property.speed; //reset unit remain speed
+            unit.remainMove = unit.property.speed; //reset unit remain speed
 
-            if (unit.isMoving)
+            if (unit.isAutoMove)
                 movingUnitList.Add(unit);
             else
                 activeUnitList.Add(unit);
@@ -82,6 +94,8 @@ public class WorldController : MonoBehaviour
 
         if (playerStartFunction != null)
             playerStartFunction();
+
+        StartCoroutine(ChangePlayerAnimation());
 
         NextTurn();
     }
@@ -98,6 +112,7 @@ public class WorldController : MonoBehaviour
 
     public delegate void PlayerEndFunction();
     public static PlayerEndFunction playerEndFunction;
+    public static bool autoUnitArrive = false;
 
     IEnumerator PlayerEnd()
     {
@@ -112,8 +127,15 @@ public class WorldController : MonoBehaviour
             }
         }
 
+        if (autoUnitArrive)
+        {
+            autoUnitArrive = false;
+            yield break;
+        }
+
         if (!allUnitMove)
             yield return null;
+
         else
         {
             if (playerEndFunction != null)
@@ -121,7 +143,6 @@ public class WorldController : MonoBehaviour
 
             PlayerStart();
         }
-            
     }
 
     public delegate void PlayerStartFunction();
@@ -150,9 +171,10 @@ public class WorldController : MonoBehaviour
 
         foreach (Unit unit in currentPlayer.unitList)
         {
-            unit.remainMove = unit.template.property.speed; //reset unit remain speed
+            unit.remainMove = unit.property.speed; //reset unit remain speed
+            unit.isAction = false;
 
-            if (unit.isMoving)
+            if (unit.isAutoMove)
                 movingUnitList.Add(unit);
             else
                 activeUnitList.Add(unit);
@@ -165,11 +187,24 @@ public class WorldController : MonoBehaviour
         if(currentPlayer.GetType() == typeof(AI_Player))
             AIAutoEnd();
         else if(currentPlayer.GetType() == typeof(HumanPlayer))
-            cameraScirpt.MoveCamera(currentPlayer.unitList[0].currentPos);
-    }
+        {
+            StartCoroutine(ChangePlayerAnimation());
 
-    //Turn Button Funciton
-    IEnumerator endPlayerCoroutine;
+            if (activeUnitList.Count > 0)
+            {
+                PlayerController.selectedUnit = activeUnitList[0];
+                UI.OpenUnitUI(PlayerController.selectedUnit);
+                cameraScirpt.MoveCamera(activeUnitList[0].currentPos);
+            }
+
+            else
+            {
+                UI.CloseUnitUI();
+                PlayerController.selectedUnit = null;
+            }
+        }
+            
+    }
 
     public void TurnBtn()
     {
@@ -180,14 +215,18 @@ public class WorldController : MonoBehaviour
 
         else
         {
+            Debug.Log("Button Down");
             foreach (Unit unit in movingUnitList)
             {
                 unit.startMove = true;
             }
 
-            endPlayerCoroutine = PlayerEnd();
-            StartCoroutine(endPlayerCoroutine);
-            StopCoroutine(endPlayerCoroutine);
+            if(movingUnitList.Count > 0)
+            {
+                cameraScirpt.MoveCamera(movingUnitList[0].currentPos);
+            }
+
+            StartCoroutine(PlayerEnd());
         }
     }
 
@@ -195,31 +234,23 @@ public class WorldController : MonoBehaviour
     {
         HumanPlayer player = (HumanPlayer)currentPlayer;
 
-        player.selectedBuilding = null;
-        UI.Disable(UI.buildingUI);
+        PlayerController.selectedBuilding = null;
+        UI.buildingUI.SetActive(false);
 
-        Debug.Log(activeUnitList.Count);
-        foreach (Unit unit in activeUnitList)
-        {
-            if (unit != player.selectedUnit &&
-                player.unitList.IndexOf(unit) > player.unitList.IndexOf(player.selectedUnit)) //Make sure it is going the next unit
-            {
-                player.selectedUnit = unit;
-                break;
-            }
+        playerController.NextUnit(activeUnitList);
 
-            else if (player.unitList.IndexOf(unit) == activeUnitList.Count - 1)
-            {
-                player.selectedUnit = activeUnitList[0]; //go back to first active unit in the list
-                break;
-            } 
-        }
+        cameraScirpt.MoveCamera(PlayerController.selectedUnit.currentPos);
+    }
 
-        if (player.selectedUnit != null)
-        {
-            UI.showUnit(player.selectedUnit.name, player.selectedUnit.template.property.maxHp, player.selectedUnit.currentHp, player.selectedUnit.template.property.armor, player.selectedUnit.damage, player.selectedUnit.remainMove);
-            UI.Enable(UI.unitUI);
-            cameraScirpt.MoveCamera(player.selectedUnit.currentPos);
-        }
+    public GameObject changePlayerScene;
+    public TextMeshProUGUI playerText;
+    public float animationTime;
+
+    IEnumerator ChangePlayerAnimation()
+    {
+        changePlayerScene.SetActive(true);
+        playerText.text = currentPlayer.name;
+        yield return new WaitForSeconds(animationTime);
+        changePlayerScene.SetActive(false);
     }
 }

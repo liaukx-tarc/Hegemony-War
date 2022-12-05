@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,7 +13,7 @@ public enum ProjectType
 
 public class UnitDevelopmentProject : MonoBehaviour
 {
-    Player player;
+    public Player player;
 
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI turnText;
@@ -29,12 +30,14 @@ public class UnitDevelopmentProject : MonoBehaviour
     public int remainDevelopCost;
 
     public UnitTemplate originalTemplate;
-    public UnitTemplate newTemplate;
+    public GameObject unitTemplatePrefab;
+    public UnitProperty unitProperty;
+    public TagController.UnitFunction runtimeFunction;
 
     public int developmentPoint = 0;
     public List<Building> developmentCenters = new List<Building>();
 
-    public void ProjectCreate(Player player, Building developmentCenter, ProjectType projectType, string projectName, int projectBudget, int developCost, UnitTemplate originalTemplate, UnitTemplate newTemplate)
+    public void ProjectCreate(Player player, Building developmentCenter, ProjectType projectType, string projectName, int projectBudget, int developCost, UnitTemplate originalTemplate, UnitProperty unitProperty, TagController.UnitFunction runtimeFunction)
     {
         this.player = player;
         AddDevelopmentCenter(developmentCenter);
@@ -49,7 +52,6 @@ public class UnitDevelopmentProject : MonoBehaviour
         maxDPText.text = developCost.ToString();
 
         this.originalTemplate = originalTemplate;
-        this.newTemplate = newTemplate;
 
         nameText.text = projectName;
         turnText.text = CalculateRemainTurn().ToString();
@@ -57,7 +59,10 @@ public class UnitDevelopmentProject : MonoBehaviour
         progressBar.maxValue = developCost;
         progressBar.value = 0;
 
-        WorldController.currentPlayer.playerStartFunction += ProjectCompleteCheck;
+        this.unitProperty = unitProperty;
+        this.runtimeFunction = runtimeFunction;
+
+        WorldController.currentPlayer.playerStartFunction += this.ProjectCompleteCheck;
     }
 
     int CalculateRemainTurn()
@@ -90,7 +95,7 @@ public class UnitDevelopmentProject : MonoBehaviour
         turnText.text = CalculateRemainTurn().ToString();
 
 
-        if (remainDevelopCost < 0)
+        if (remainDevelopCost <= 0)
         {
             EndProject();
         }
@@ -100,18 +105,34 @@ public class UnitDevelopmentProject : MonoBehaviour
     {
         switch (projectType)
         {
-            case ProjectType.UnitDevelopment:
-                player.unitTemplateList.Add(newTemplate);
+            case ProjectType.UnitDevelopment: //Same Function
+
+            case ProjectType.UnitModify:
+                GameObject tempTemplate = Instantiate(unitTemplatePrefab, UI_Controller.unitTemplateListUI.unitTemplateListObj.transform);
+                UnitTemplate unitTemplate = tempTemplate.GetComponent<UnitTemplate>();
+                unitTemplate.CreateTemplate(unitProperty, runtimeFunction);
+
+                player.unitTemplateList.Add(unitTemplate);
+                Debug.Log("Add");
                 break;
 
-            case ProjectType.UnitModify: //Same function
-
             case ProjectType.UnitUpgrade:
-                originalTemplate = newTemplate;
+                Debug.Log("Change Template");
+                originalTemplate.property = unitProperty;
+                originalTemplate.runTimeFunction = runtimeFunction;
                 break;
         }
 
+        UI_Controller.buildingUIController.UpdateUnitTemplateList();
         WorldController.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
-        GameObject.Destroy(this.gameObject);
+        WorldController.playerStartFunction -= ProjectCompleteCheck;
+        player.projectList.Remove(this.gameObject);
+        Destroy(this.gameObject);
+    }
+
+    public void ShowDetail()
+    {
+        UI_Controller.progressUI.ShowProjectDetail(projectName, unitProperty, developmentCenters);
+        UI_Controller.selectedUnitTemplateProperty = unitProperty;
     }
 }

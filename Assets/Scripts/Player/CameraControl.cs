@@ -179,8 +179,6 @@ public class CameraControl : MonoBehaviour
         {
             if (tempCell != null)
             {
-                tempCell.gameObject.SetActive(false);
-
                 foreach (Unit unit in tempCell.unitsList)
                 {
                     unit.rendererCpn.enabled = false;
@@ -192,6 +190,8 @@ public class CameraControl : MonoBehaviour
                     tempCell.building.rendererCpn.enabled = false;
                     tempCell.building.colliderCpn.enabled = false;
                 }
+
+                tempCell.gameObject.SetActive(false);
             }
         }
 
@@ -247,6 +247,9 @@ public class CameraControl : MonoBehaviour
 
                     displayMap[w + halfDisplayX, h + halfDisplayY] = cell;
                 }
+
+                else
+                    displayMap[w + halfDisplayX, h + halfDisplayY] = null;
             }
         }
 
@@ -254,6 +257,7 @@ public class CameraControl : MonoBehaviour
             targetCell.transform.position.z - (transform.position.y / 2 + 1) * 1.75f);
 
         culledCount = 0;
+        curMovedDis.x = curMovedDis.y = 0;
     }
 
     void MapCulling(Direction direction)

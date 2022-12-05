@@ -12,7 +12,8 @@ public class Unit : MonoBehaviour
     public Collider colliderCpn;
 
     //Unit Propety Scriptable Object
-    public UnitTemplate template;
+    public UnitProperty property;
+    public TagController.UnitFunction runtimeFunction;
 
     //Unit state
     public int currentHp;
@@ -22,13 +23,9 @@ public class Unit : MonoBehaviour
     public bool isAction = false;
     public MapCell currentPos;
 
-    //pathFinding
-    public int turnSeachCount;
-    public int maxSeachCount;
-    List<MapCell> path = new List<MapCell>();
-
     //Moving
     public bool isMoving = false;
+    public bool isAutoMove = false;
     public bool startMove = false;
     public MapCell targetPos;
     public int moveFrame;
@@ -42,9 +39,9 @@ public class Unit : MonoBehaviour
 
     public void InitializeUnit()
     {
-        currentHp = template.property.maxHp;
-        damage = template.property.damage;
-        remainMove = template.property.speed;
+        currentHp = property.maxHp;
+        damage = property.damage;
+        remainMove = property.speed;
     }
 
     private void Update()
@@ -67,59 +64,78 @@ public class Unit : MonoBehaviour
                 else
                 {
                     isAction = true;
+                    WorldController.autoUnitArrive = false;
                     WorldController.activeUnitList.Remove(this);
                 }
-                    
-            }      
+
+            }
+
+            else
+            {
+                isAction = true;
+            }
         }
 
         if (isMoving)
         {
             if (moveCount == moveFrame)
             {
-                if (!isAction)
+                currentPos.unitsList.Remove(this);
+                currentPos = currentPath;
+                currentPos.unitsList.Add(this);
+                path.Remove(currentPath);
+                showPath = false;
+
+                if (currentPos == targetPos)
                 {
-                    currentPos.unitsList.Remove(this);
-                    currentPos = currentPath;
-                    currentPos.unitsList.Add(this);
-                    path.Remove(currentPath);
-
-                    if (currentPos == targetPos)
+                    if (isBuilding)
                     {
-                        if (isBuilding)
-                        {
-                            GameObject building = Instantiate(buildingObj,
-                                new Vector3(targetPos.transform.position.x, targetPos.transform.position.y + 1.0f, targetPos.transform.position.z),
-                                Quaternion.identity);
-                            building.transform.parent = targetPos.transform;
-                            building.name = "Building" + " " + ++player.buildNum;
-                            targetPos.building = building.GetComponent<Building>();
+                        GameObject building = Instantiate(buildingObj,
+                            new Vector3(targetPos.transform.position.x, targetPos.transform.position.y + 1.0f, targetPos.transform.position.z),
+                            Quaternion.identity);
+                        building.transform.parent = targetPos.transform;
+                        building.name = "Building" + " " + ++player.buildNum;
+                        targetPos.building = building.GetComponent<Building>();
 
-                            isBuilding = false;
-                        }
+                        isBuilding = false;
+                    }
 
-                        isMoving = false;
-                        isAction=false;
+                    if(isAutoMove)
+                    {
+                        isAction = false;
+                        isAutoMove = false;
+                        WorldController.autoUnitArrive = true;
                         WorldController.activeUnitList.Add(this);
                     }
 
-                    else if (path.Count > 0)
+                    else
                     {
-                        if (remainMove >= path[0].cost)
-                        {
-                            currentPath = path[0];
-                            remainMove -= currentPath.cost;
-                            moveDistance = currentPath.transform.position - currentPos.transform.position;
-                            this.transform.LookAt(new Vector3(currentPath.transform.position.x, this.transform.position.y, currentPath.transform.position.z));
+                        isAction = true;
+                        WorldController.activeUnitList.Remove(this);
+                    }
 
-                            moveCount = 0;
-                        }
+                    isMoving = false;
+                }
 
-                        else
-                        {
-                            isAction = true;
-                            WorldController.activeUnitList.Remove(this);
-                        }
+                else if (path.Count > 0)
+                {
+                    if (remainMove >= path[0].cost)
+                    {
+                        currentPath = path[0];
+                        remainMove -= currentPath.cost;
+                        moveDistance = currentPath.transform.position - currentPos.transform.position;
+                        this.transform.LookAt(new Vector3(currentPath.transform.position.x, this.transform.position.y, currentPath.transform.position.z));
+
+                        moveCount = 0;
+                    }
+
+                    else
+                    {
+                        isAutoMove = true;
+                        isAction = true;
+                        WorldController.autoUnitArrive = false;
+                        WorldController.activeUnitList.Remove(this);
+                        isMoving = false;
                     }
                 }
             }
@@ -132,18 +148,16 @@ public class Unit : MonoBehaviour
         }
     }
 
-    public void Move(MapCell targetPos)
-    {
-
-    }
-
-    public void AutoMove()
-    {
-
-    }
+    //pathFinding
+    public bool endSearch;
+    public bool showPath;
+    public int turnSeachCount;
+    public int maxSeachCount;
+    public List<MapCell> path = new List<MapCell>();
 
     public void CheckPath(MapCell targetPos)
     {
+        this.targetPos = targetPos;
         StopAllCoroutines();
         path.Clear();
         StartCoroutine(AStar_PathFinding(targetPos));
@@ -151,6 +165,9 @@ public class Unit : MonoBehaviour
 
     IEnumerator AStar_PathFinding(MapCell targetPos)
     {
+        endSearch = false;
+        showPath = false;
+
         Node startNode = new Node(currentPos);
         startNode.gCost = 0;
         startNode.hCost = startNode.mapCell.cubePosition.CheckDistance(targetPos.cubePosition);
@@ -166,16 +183,15 @@ public class Unit : MonoBehaviour
         bool inClose;
         int seachcount = 0;
 
-        //Test
         if(startNode.mapCell.connectGroupCoast == targetPos.connectGroupCoast)
         {
             do
             {
                 if (seachcount >= maxSeachCount)
                 {
-                    Debug.Log("Too Far Can't Reach");
                     isBuilding = false;
                     startMove = false;
+                    endSearch = true;
                     yield break;
                 }
 
@@ -215,6 +231,7 @@ public class Unit : MonoBehaviour
                         path.Add(temp.mapCell);
                         path.Reverse();
 
+                        endSearch = true;
                         yield break;
                     }
 
@@ -271,11 +288,13 @@ public class Unit : MonoBehaviour
                 seachcount++;
             } while (openList.Count > 0);
         }
+
         else
         {
             Debug.Log("Can't Move");
+            startMove = false;
+            endSearch = true;
+            yield break;
         }
     }
-
-
 }
