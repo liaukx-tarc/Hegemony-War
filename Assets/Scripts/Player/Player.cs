@@ -10,12 +10,18 @@ public class Player : MonoBehaviour
     //Unit List
     public List<Unit> unitList = new List<Unit>();
     public List<GameObject> projectList = new List<GameObject>();
+    public int projectCount;//Not include upgrade Progress
+
+    //Building List
 
     //Turn Function
     public WorldController.PlayerStartFunction playerStartFunction;
     public WorldController.PlayerEndFunction playerEndFunction;
 
-
+    //Resource
+    public int money;
+    public int maintanceCost;
+    public int sciencePoint;
 
     //Testing
     public int buildNum = 0;
@@ -30,13 +36,10 @@ public class Player : MonoBehaviour
         
     }
 
-    public UnitProperty[] unitProperties = new UnitProperty[10];
-
     private void Update()
     {
-        for (int i = 0; i < unitTemplateList.Count; i++)
-        {
-            unitProperties[i] = unitTemplateList[i].property;
-        }
+
     }
+
+
 }

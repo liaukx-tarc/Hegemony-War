@@ -83,6 +83,7 @@ public class UI_Progress : MonoBehaviour
             {
                 tagTextList[i].text = unitTagsList[i].ToString();
                 tagTextList[i].transform.parent.gameObject.SetActive(true);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(tagTextList[0].transform.parent.GetComponent<RectTransform>());
             }
 
             else

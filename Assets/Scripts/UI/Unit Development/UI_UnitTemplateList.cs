@@ -2,13 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
+using UnityEngine.UI;
 
 public class UI_UnitTemplateList : MonoBehaviour
 {
+    public RectTransform UT_RectTransform;
+    Vector3 UT_Position;
+
     public GameObject unitTemplateUI;
     public GameObject unitTemplateListObj;
     public GameObject templateInfoPanel;
     public GameObject noneText;
+    public TextMeshProUGUI templateLusrTitle;
 
     [Header("Tag List")]
     public List<TextMeshProUGUI> tagTextArray;
@@ -24,43 +30,96 @@ public class UI_UnitTemplateList : MonoBehaviour
     public AccessorySlot engineSlots;
 
     public UnitTemplate selectedTemplate;
-    public UnitProperty selectedUnitProperty;
+
+    public bool isModify;
+    public bool isUpgrade;
+
+    [Header("Button")]
+    public Image detailBtnBackground;
+    public TextMeshProUGUI detailBtnText;
+    public Color modifyColor;
+    public Color upgradeColor;
+    public Color viewColor;
+
+    const string Template = " Template";
+    const string View = "View";
+    const string Modify = "Modify";
+    const string Upgrade = "Upgrade";
 
     public void UnitTemplateUI_Start()
     {
         WorldController.playerEndFunction += DisablePlayerUnitTemplate;
         WorldController.playerStartFunction += ActivePlayerUnitTemplate;
         UI_Controller.closeAllUIFunction += CloseTemplateUI;
+
+        UT_Position = UT_RectTransform.anchoredPosition;
     }
+
+    public bool tempModify;
+    public bool tempUpgrade;
 
     public void OpenTemplateUI()
     {
+        UT_RectTransform.anchoredPosition = UT_Position;
+
+        tempModify = isModify;
+        tempUpgrade = isUpgrade;
+
         UI_Controller.closeAllUIFunction();
+        WorldController.UI.EnableScreenBlock();
+
+        isModify = tempModify;
+        isUpgrade = tempUpgrade;
+
         unitTemplateUI.SetActive(true);
 
         if (WorldController.currentPlayer.unitTemplateList.Count > 0)
             noneText.SetActive(false);
         else
             noneText.SetActive(true);
+
+        if(isModify)
+        {
+            templateLusrTitle.text = Modify + Template;
+            detailBtnBackground.color = modifyColor;
+            detailBtnText.text = Modify;
+        }
+
+        else if(isUpgrade)
+        {
+            templateLusrTitle.text = Upgrade + Template;
+            detailBtnBackground.color = upgradeColor;
+            detailBtnText.text = Upgrade;
+        }
+
+        else
+        {
+            templateLusrTitle.text = View + Template;
+            detailBtnBackground.color = viewColor;
+            detailBtnText.text = View;
+        }
     }
 
     public void CloseTemplateUI()
     {
         unitTemplateUI.SetActive(false);
         templateInfoPanel.SetActive(false);
-        selectedTemplate = null;
+
+        WorldController.UI.DisableScreenBlock();
+
+        isModify = false;
+        isUpgrade = false;
     }
 
     public void ShowTemplateInfo(UnitTemplate unitTemplate)
     {
         selectedTemplate = unitTemplate;
-        selectedUnitProperty = selectedTemplate.property;
 
-        ChangeTag(selectedUnitProperty);
+        ChangeTag(selectedTemplate.property);
 
-        for (int i = 0; i < selectedUnitProperty.accessoryProperty.Length; i++)
+        for (int i = 0; i < selectedTemplate.property.accessoryProperty.Length; i++)
         {
-            AccessoryProperty accessory = selectedUnitProperty.accessoryProperty[i];
+            AccessoryProperty accessory = selectedTemplate.property.accessoryProperty[i];
 
             if (i < 3) //Heavy Weapon
             {
@@ -74,6 +133,7 @@ public class UI_UnitTemplateList : MonoBehaviour
                 heavyWeaponSlots[i].showingIcon.sprite = accessory.icon;
                 heavyWeaponSlots[i].showingIcon.enabled = true;
                 heavyWeaponSlots[i].isEquip = true;
+                heavyWeaponSlots[i].gameObject.SetActive(true);
             }
 
             else if (i < 6)
@@ -88,6 +148,7 @@ public class UI_UnitTemplateList : MonoBehaviour
                 mediumWeaponSlots[i - 3].showingIcon.sprite = accessory.icon;
                 mediumWeaponSlots[i - 3].showingIcon.enabled = true;
                 mediumWeaponSlots[i - 3].isEquip = true;
+                mediumWeaponSlots[i - 3].gameObject.SetActive(true);
             }
 
             else if (i < 9)
@@ -102,6 +163,7 @@ public class UI_UnitTemplateList : MonoBehaviour
                 lightWeaponSlots[i - 6].showingIcon.sprite = accessory.icon;
                 lightWeaponSlots[i - 6].showingIcon.enabled = true;
                 lightWeaponSlots[i - 6].isEquip = true;
+                lightWeaponSlots[i - 6].gameObject.SetActive(true);
             }
 
             else if (i < 12)
@@ -116,6 +178,7 @@ public class UI_UnitTemplateList : MonoBehaviour
                 defenceEquipmentSlots[i - 9].showingIcon.sprite = accessory.icon;
                 defenceEquipmentSlots[i - 9].showingIcon.enabled = true;
                 defenceEquipmentSlots[i - 9].isEquip = true;
+                defenceEquipmentSlots[i - 9].gameObject.SetActive(true);
             }
 
             else if (i < 16)
@@ -130,6 +193,7 @@ public class UI_UnitTemplateList : MonoBehaviour
                 auxiliaryEquipmentSlots[i - 12].showingIcon.sprite = accessory.icon;
                 auxiliaryEquipmentSlots[i - 12].showingIcon.enabled = true;
                 auxiliaryEquipmentSlots[i - 12].isEquip = true;
+                auxiliaryEquipmentSlots[i - 12].gameObject.SetActive(true);
             }
 
             else if (i < 17)
@@ -144,6 +208,7 @@ public class UI_UnitTemplateList : MonoBehaviour
                 fireControlSystemSlots.showingIcon.sprite = accessory.icon;
                 fireControlSystemSlots.showingIcon.enabled = true;
                 fireControlSystemSlots.isEquip = true;
+                fireControlSystemSlots.gameObject.SetActive(true);
             }
 
             else if (i < 18)
@@ -158,17 +223,25 @@ public class UI_UnitTemplateList : MonoBehaviour
                 engineSlots.showingIcon.sprite = accessory.icon;
                 engineSlots.showingIcon.enabled = true;
                 engineSlots.isEquip = true;
+                engineSlots.gameObject.SetActive(true);
             }
         }
 
         templateInfoPanel.SetActive(true);
     }
 
-    public void ShowTemplateDetail()
+    public void onClickFunction()
     {
-        WorldController.UI.OpenUnitDevelopmentUI();
-        UI_Controller.accessoriesUI.showTemplateDetail(selectedUnitProperty);
+        if (isModify)
+            UI_Controller.accessoriesUI.UIOpen(ProjectType.UnitModify, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
 
+        else if (isUpgrade)
+            UI_Controller.accessoriesUI.UIOpen(ProjectType.UnitUpgrade, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
+
+        else
+            UI_Controller.accessoriesUI.showTemplateDetail(selectedTemplate.property);
+
+        WorldController.UI.OpenAccessoriesUI();
         CloseTemplateUI();
     }
 

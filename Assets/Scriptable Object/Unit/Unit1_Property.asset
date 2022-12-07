@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 130ec6783dd1a794d949e9e03e30bc7f, type: 3}
   m_Name: Unit1_Property
   m_EditorClassIdentifier: 
+  unitName: Tank
+  unitIcon: {fileID: 21300000, guid: abe4e4db979e47d4ab79b999df5f132e, type: 3}
   maxHp: 100
   armor: 10
   damage: 3
@@ -23,4 +25,5 @@ MonoBehaviour:
   maintanceCost: 6
   produceCost: 100
   transportProperty: {fileID: 11400000, guid: 0c6f193bed8589a49a3c44f016d71a6a, type: 2}
-  accessoryProperty: []
+  accessoryProperty:
+  - {fileID: 11400000, guid: 235034135bf3f32488b6104ad721492f, type: 2}

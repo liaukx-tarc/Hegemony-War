@@ -31,6 +31,7 @@ public class UnitTemplate: MonoBehaviour
         this.property = property;
         this.runTimeFunction = runTimeFunction;
 
+        unitNameText.text = property.unitName;
         switch (property.transportProperty.transportType)
         {
             case TransportType.Infantry:
@@ -50,6 +51,21 @@ public class UnitTemplate: MonoBehaviour
                 break;
         }
 
+        icon.sprite = property.unitIcon;
+
+        maxHpText.text = property.maxHp.ToString();
+        armorText.text = property.armor.ToString();
+        damageText.text = property.damage.ToString();
+        rangeText.text = property.range.ToString();
+        speedText.text = property.speed.ToString();
+
+        maintanceCostText.text = property.maintanceCost.ToString();
+        produceCostText.text = property.produceCost.ToString();
+    }
+
+
+    public void UpdateTemplateInfo()
+    {
         icon.sprite = property.unitIcon;
 
         maxHpText.text = property.maxHp.ToString();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -161,9 +162,16 @@ public class UI_AccessoriesEquip : MonoBehaviour
     public Building building;
 
     public TextMeshProUGUI createBtnText;
+    public Image createBtnBackground;
+    public Color createColor;
+    public Color modifyColor;
+    public Color upgradeColor;
     const string Create = "Create";
     const string Modify = "Modify";
     const string Upgrade = "Upgrade";
+
+    public static bool accessorySlotState = true;
+
 
     public void UIOpen(ProjectType projectType, TransportType transportType, UnitTemplate originalTemplate)
     {
@@ -172,21 +180,49 @@ public class UI_AccessoriesEquip : MonoBehaviour
         switch (projectType)
         {
             case ProjectType.UnitDevelopment:
+                originalTemplate = null;
+
+                accessorySlotState = true;
+                transportDropdown.dropdown.interactable = true;
                 transportDropdown.onTransportTypeChange(transportType);
-                ChangeAccessoriesSelect(transportType);
+                ChangeAccessoriesSelect(transportType, true);
+                createBtnBackground.color = createColor;
                 createBtnText.text = Create;
+
+                unitName = unitNameInput.text = WorldController.currentPlayer.name + " Unit " + WorldController.currentPlayer.projectCount; ;
+                unitNameInput.interactable = true;
                 break;
 
             case ProjectType.UnitModify:
-                transportDropdown.dropdown.interactable = false;
                 this.originalTemplate = originalTemplate;
+
+                accessorySlotState = true;
+                transportDropdown.dropdown.interactable = false;
                 transportDropdown.text.text = originalTemplate.property.transportProperty.transportName;
-                ChangeAccessoriesSelect(transportType);
+                ChangeTransport(originalTemplate.property.transportProperty);
+                ChangeAccessoriesSelect(transportType, true);
+                enquipOriginalAccessories(originalTemplate.property.accessoryProperty);
+                createBtnBackground.color = modifyColor;
                 createBtnText.text = Modify;
+
+                unitName = unitNameInput.text = originalTemplate.property.unitName;
+                unitNameInput.interactable = true;
                 break;
 
             case ProjectType.UnitUpgrade:
+                this.originalTemplate = originalTemplate;
+                
+                accessorySlotState = false;
+                transportDropdown.dropdown.interactable = false;
+                transportDropdown.text.text = originalTemplate.property.transportProperty.transportName;
+                ChangeTransport(originalTemplate.property.transportProperty);
+                ChangeAccessoriesSelect(transportType, false);
+                enquipOriginalAccessories(originalTemplate.property.accessoryProperty);
+                createBtnBackground.color = upgradeColor;
                 createBtnText.text = Upgrade;
+
+                unitName = unitNameInput.text = originalTemplate.property.unitName;
+                unitNameInput.interactable = false;
                 break;
         }
 
@@ -194,22 +230,71 @@ public class UI_AccessoriesEquip : MonoBehaviour
         costSelection.SetActive(true);
     }
 
+    void enquipOriginalAccessories(AccessoryProperty[] accessoriesProperty)
+    {
+        for (int i = 0; i < accessoriesProperty.Length; i++)
+        {
+            if (accessoriesProperty[i] == null)
+                continue;
+            else
+            {
+                Debug.Log(accessoriesProperty[i].accessoryName);
+            }
+
+            if (!unitTagsList.Contains(accessoriesProperty[i].accessoryTag) && accessoriesProperty[i].accessoryTag != UnitTag.None)
+                unitTagsList.Add(accessoriesProperty[i].accessoryTag);
+
+            if (i < 3) //Heavy Weapon
+                heavyWeaponSlots[i].equitAccessory(accessoriesProperty[i]);
+
+            else if (i < 6)
+                mediumWeaponSlots[i - 3].equitAccessory(accessoriesProperty[i]);
+
+            else if (i < 9)
+                lightWeaponSlots[i - 6].equitAccessory(accessoriesProperty[i]);
+
+            else if (i < 12)
+                defenceEquipmentSlots[i - 9].equitAccessory(accessoriesProperty[i]);
+
+            else if (i < 16)
+                auxiliaryEquipmentSlots[i - 12].equitAccessory(accessoriesProperty[i]);
+
+            else if (i < 17)
+                fireControlSystemSlots.equitAccessory(accessoriesProperty[i]);
+
+            else if (i < 18)
+                engineSlots.equitAccessory(accessoriesProperty[i]);
+        }
+
+        ChangeTag();
+    }
+
+
+
     //Change Transport
     [Header("Transport")]
     public TransportDropdown transportDropdown;
     public TransportProperty transportProperty;
    
-    public void ChangeAccessoriesSelect(TransportType transportType)
+    public void ChangeAccessoriesSelect(TransportType transportType, bool accessoriesSlectState)
     {
+        filterButton.SetActive(accessoriesSlectState);
+
         bool tagMatch;
 
         foreach (AccessorySelection accessorySelection in accessoriesListAll)
         {
+            if (!accessoriesSlectState)
+            {
+                accessorySelection.gameObject.SetActive(false);
+                continue;
+            }
+
             tagMatch = false;
 
             foreach (TransportType transport in accessorySelection.property.transportType)
             {
-                if(transport == transportType)
+                if (transport == transportType)
                 {
                     accessorySelection.gameObject.SetActive(true);
                     tagMatch = true;
@@ -217,7 +302,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
                 }
             }
 
-            if(!tagMatch)
+            if (!tagMatch)
                 accessorySelection.gameObject.SetActive(false);
         }
     }
@@ -229,6 +314,8 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
         for (int i = 0; i < heavyWeaponSlots.Length; i++)
         {
+            heavyWeaponSlots[i].GetComponent<Button>().interactable = accessorySlotState;
+
             if (heavyWeaponSlots[i].isEquip)
                 heavyWeaponSlots[i].removeAccessory();
 
@@ -240,6 +327,8 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
         for (int i = 0; i < mediumWeaponSlots.Length; i++)
         {
+            mediumWeaponSlots[i].GetComponent<Button>().interactable = accessorySlotState;
+
             if (mediumWeaponSlots[i].isEquip)
                 mediumWeaponSlots[i].removeAccessory();
 
@@ -251,6 +340,8 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
         for (int i = 0; i < lightWeaponSlots.Length; i++)
         {
+            lightWeaponSlots[i].GetComponent<Button>().interactable = accessorySlotState;
+
             if (lightWeaponSlots[i].isEquip)
                 lightWeaponSlots[i].removeAccessory();
 
@@ -262,6 +353,8 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
         for (int i = 0; i < defenceEquipmentSlots.Length; i++)
         {
+            defenceEquipmentSlots[i].GetComponent<Button>().interactable = accessorySlotState;
+
             if (defenceEquipmentSlots[i].isEquip)
                 defenceEquipmentSlots[i].removeAccessory();
 
@@ -273,12 +366,14 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
         for (int i = 0; i < auxiliaryEquipmentSlots.Length; i++)
         {
+            auxiliaryEquipmentSlots[i].GetComponent<Button>().interactable = accessorySlotState;
+
             if (auxiliaryEquipmentSlots[i].isEquip)
                 auxiliaryEquipmentSlots[i].removeAccessory();
 
             if (i <= transport.auxiliaryEquipmentNum - 1)
             {
-                if(i == 2)
+                if (i == 2)
                     auxiliaryEquipmentSlots[i].transform.parent.gameObject.SetActive(true);
                 auxiliaryEquipmentSlots[i].gameObject.SetActive(true);
             }
@@ -290,12 +385,22 @@ public class UI_AccessoriesEquip : MonoBehaviour
             }
         }
 
+        fireControlSystemSlots.GetComponent<Button>().interactable = accessorySlotState;
+
         if (fireControlSystemSlots.isEquip)
+        {
+            
             fireControlSystemSlots.removeAccessory();
+        }
+
+        engineSlots.GetComponent<Button>().interactable = accessorySlotState;
 
         if (engineSlots.isEquip)
+        {
+            
             engineSlots.removeAccessory();
-
+        }
+            
         ResetUI_AccessoriesEquip();
         maxHp = transport.maxHp;
         armor = transport.armor;
@@ -355,11 +460,18 @@ public class UI_AccessoriesEquip : MonoBehaviour
     public TextMeshProUGUI produceCostText;
 
     [HideInInspector] public int budgetPercentage = 100, qualityPercentage = 100, simplifyPercentage = 100, reduceCostPercentage = 100;
+    public UI_CostChange budgetSlider;
+    public UI_CostChange qualitySlider;
+    public UI_CostChange simplifySlider;
+    public UI_CostChange reduceCostSlider;
 
     const float Percentage = 100;
     [Header("Cost effect Unit Property")]
     public float propertyIncrease;
     public float costDecrease;
+    public float minDevelopmentPercentage;
+    public float modifyCostPercentage;
+    public float upgradeCostPercentage;
 
     float percentageChange = 0;
 
@@ -369,8 +481,25 @@ public class UI_AccessoriesEquip : MonoBehaviour
         finalMaxHp = maxHp;
         finalArmor = armor;
         finalDamage = damage;
-        finalBudgetCost = budgetCost;
-        finalDevelopCost = developCost;
+
+        switch (projectType)
+        {
+            case ProjectType.UnitDevelopment:
+                finalBudgetCost = budgetCost;
+                finalDevelopCost = developCost;
+                break;
+
+            case ProjectType.UnitModify:
+                finalBudgetCost = (int)Mathf.Round(budgetCost * modifyCostPercentage);
+                finalDevelopCost = (int)Mathf.Round(developCost * modifyCostPercentage);
+                break;
+
+            case ProjectType.UnitUpgrade:
+                finalBudgetCost = (int)Mathf.Round(budgetCost * upgradeCostPercentage);
+                finalDevelopCost = (int)Mathf.Round(developCost * upgradeCostPercentage);
+                break;
+        }
+
         finalMaintanceCost = maintanceCost;
         finalProduceCost = produceCost;
 
@@ -405,6 +534,24 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
         finalMaintanceCost -= (int)Mathf.Round((float)maintanceCost * costDecrease * percentageChange);
 
+        //Final Development Cost not less than original Development Cost
+        switch (projectType)
+        {
+            case ProjectType.UnitDevelopment:
+                finalDevelopCost = Mathf.Max(finalDevelopCost, (int)Mathf.Round(developCost * minDevelopmentPercentage));
+                break;
+
+            case ProjectType.UnitModify:
+                finalDevelopCost = Mathf.Max(finalDevelopCost, (int)Mathf.Round(developCost * modifyCostPercentage * minDevelopmentPercentage));
+                break;
+
+            case ProjectType.UnitUpgrade:
+                finalDevelopCost = Mathf.Max(finalDevelopCost, (int)Mathf.Round(developCost * upgradeCostPercentage * minDevelopmentPercentage));
+                break;
+        }
+
+        
+
         maxHpText.text = finalMaxHp.ToString();
         armorText.text = finalArmor.ToString();
         damageText.text = finalDamage.ToString();
@@ -432,13 +579,10 @@ public class UI_AccessoriesEquip : MonoBehaviour
         maintanceCost = 0;
         produceCost = 0;
 
-        budgetPercentage = 100;
-        qualityPercentage = 100;
-        simplifyPercentage = 100;
-        reduceCostPercentage = 100;
-
-        unitName = null;
-        unitNameInput.text = null;
+        budgetSlider.ChangeCost(100);
+        qualitySlider.ChangeCost(100);
+        simplifySlider.ChangeCost(100);
+        reduceCostSlider.ChangeCost(100);
     }
 
     public void equipAccessory(AccessoryProperty accessory, int slotIndex)
@@ -513,6 +657,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
             {
                 tagTextArray[i].text = unitTagsList[i].ToString();
                 tagTextArray[i].transform.parent.gameObject.SetActive(true);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(tagTextArray[0].transform.parent.GetComponent<RectTransform>());
             }
 
             else
@@ -546,9 +691,13 @@ public class UI_AccessoriesEquip : MonoBehaviour
         {
             case ProjectType.UnitDevelopment:
                 tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitProperty, runtimeFunction);
+                WorldController.currentPlayer.projectCount++;
                 break;
 
             case ProjectType.UnitModify:
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction); //same Function
+                WorldController.currentPlayer.projectCount++;
+                break;
 
             case ProjectType.UnitUpgrade:
                 tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction); //same Function
@@ -597,6 +746,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
         produceCostText.text = property.produceCost.ToString();
 
         transportDropdown.text.text = property.transportProperty.transportName;
+        transportDropdown.dropdown.interactable = false;
 
         foreach (AccessorySelection accessorySelection in accessoriesListAll)
         {

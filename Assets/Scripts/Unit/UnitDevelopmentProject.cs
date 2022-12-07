@@ -15,16 +15,32 @@ public class UnitDevelopmentProject : MonoBehaviour
 {
     public Player player;
 
+    [Header("Icon")]
+    public Image iconBackground;
+    public Image icon;
+
+    public Color developmentColor;
+    public Sprite developmentIcon;  
+    
+    public Color modifyColor;
+    public Sprite modifyIcon; 
+    
+    public Color upgradeColor;
+    public Sprite upgradeIcon;
+
+    [Header("Basic Info")]
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI turnText;
     public Slider progressBar;
     public ProjectType projectType;
 
     //Cost
+    [Header("Cost Info")]
     public TextMeshProUGUI completeDPText;
     public TextMeshProUGUI maxDPText;
     public TextMeshProUGUI budgetText;
 
+    [Header("Data")]
     public string projectName;
     public int projectBudget;
     public int remainDevelopCost;
@@ -39,6 +55,24 @@ public class UnitDevelopmentProject : MonoBehaviour
 
     public void ProjectCreate(Player player, Building developmentCenter, ProjectType projectType, string projectName, int projectBudget, int developCost, UnitTemplate originalTemplate, UnitProperty unitProperty, TagController.UnitFunction runtimeFunction)
     {
+        switch (projectType)
+        {
+            case ProjectType.UnitDevelopment:
+                iconBackground.color = developmentColor;
+                icon.sprite = developmentIcon;
+                break;
+
+            case ProjectType.UnitModify:
+                iconBackground.color = modifyColor;
+                icon.sprite = modifyIcon;
+                break;
+
+            case ProjectType.UnitUpgrade:
+                iconBackground.color = upgradeColor;
+                icon.sprite = upgradeIcon;
+                break;
+        }
+
         this.player = player;
         AddDevelopmentCenter(developmentCenter);
         this.projectType = projectType;
@@ -98,11 +132,17 @@ public class UnitDevelopmentProject : MonoBehaviour
         if (remainDevelopCost <= 0)
         {
             EndProject();
+            Destroy(this.gameObject);
         }
     }
 
     public void EndProject()
     {
+        player.projectList.Remove(this.gameObject);
+        UI_Controller.buildingUIController.UpdateUnitTemplateList();
+        WorldController.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
+        WorldController.playerStartFunction -= ProjectCompleteCheck;
+
         switch (projectType)
         {
             case ProjectType.UnitDevelopment: //Same Function
@@ -113,21 +153,14 @@ public class UnitDevelopmentProject : MonoBehaviour
                 unitTemplate.CreateTemplate(unitProperty, runtimeFunction);
 
                 player.unitTemplateList.Add(unitTemplate);
-                Debug.Log("Add");
                 break;
 
             case ProjectType.UnitUpgrade:
-                Debug.Log("Change Template");
                 originalTemplate.property = unitProperty;
                 originalTemplate.runTimeFunction = runtimeFunction;
+                originalTemplate.UpdateTemplateInfo();
                 break;
         }
-
-        UI_Controller.buildingUIController.UpdateUnitTemplateList();
-        WorldController.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
-        WorldController.playerStartFunction -= ProjectCompleteCheck;
-        player.projectList.Remove(this.gameObject);
-        Destroy(this.gameObject);
     }
 
     public void ShowDetail()

@@ -1,11 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static UI_Controller;
-using static UnityEngine.UI.CanvasScaler;
 
 public class UI_Controller : MonoBehaviour
 {
@@ -15,12 +11,7 @@ public class UI_Controller : MonoBehaviour
     //Canvas
     [SerializeField]
     public static Canvas canvas;
-
-    //Building UI
-    [Header("Building UI")]
-    public GameObject buildingUI;
-    public static UI_Building buildingUIController;
-    public TextMeshProUGUI buildingName;
+    public static bool isUIOpen = false;
 
     //Delegate
     public delegate void CloseAllUIFunction();
@@ -33,12 +24,15 @@ public class UI_Controller : MonoBehaviour
         UnitUIStart();
         UD_Start();
         unitTemplateListUI.UnitTemplateUI_Start();
+
+        closeAllUIFunction += DisableScreenBlock;
+        WorldController.playerEndFunction += CloseAllUI;
     }
 
     public void Update()
     {
         if (Input.GetButton(cancel))
-            UD_Close();
+            closeAllUIFunction();
     }
 
     private void FixedUpdate()
@@ -46,15 +40,44 @@ public class UI_Controller : MonoBehaviour
         UnitUIUpdate();
     }
 
+    public void CloseAllUI()
+    {
+        closeAllUIFunction();
+    }
+
+    //Screen Block
+    public GameObject screenBlock;
+
+    public void EnableScreenBlock()
+    {
+        screenBlock.SetActive(true);
+        isUIOpen = true;
+    }
+
+    public void DisableScreenBlock()
+    {
+        screenBlock.SetActive(false);
+        isUIOpen = false;
+    }
+
     //Unit UI
     [Header("Unit UI")]
     public GameObject unitUI;
+
+    public Image iconBackground;
+    public Image icon;
+    public Color infantryColor;
+    public Color vechicleColor;
+    public Color aircarftColor;
+    public Color shipColor;
+
     public TextMeshProUGUI unitName;
     public TextMeshProUGUI lifeVariable;
     public TextMeshProUGUI armorVariable;
     public TextMeshProUGUI damageVariable;
     public TextMeshProUGUI rangeVariable;
     public TextMeshProUGUI speedVariable;
+    public TextMeshProUGUI maintainCostVariable;
 
     public Unit showingUnit;
     public bool unitUIOn = false;
@@ -67,6 +90,32 @@ public class UI_Controller : MonoBehaviour
     public void OpenUnitUI(Unit unit)
     {
         showingUnit = unit;
+        
+        switch (unit.property.transportProperty.transportType)
+        {
+            case TransportType.Infantry:
+                iconBackground.color = infantryColor;
+                break;
+
+            case TransportType.Vechicle:
+                iconBackground.color = vechicleColor;
+                break;
+
+            case TransportType.Aircarft:
+                iconBackground.color = aircarftColor;
+                break;
+
+            case TransportType.Ship:
+                iconBackground.color = shipColor;
+                break;
+        }
+
+        icon.sprite = unit.property.unitIcon;
+        
+        unitName.text = showingUnit.property.unitName;
+        maintainCostVariable.text = showingUnit.property.maintanceCost.ToString();
+        ChangeTag(showingUnit.property);
+
         unitUIOn = true;
         unitUI.SetActive(true);
     }
@@ -82,12 +131,42 @@ public class UI_Controller : MonoBehaviour
     {
         if(unitUIOn)
         {
-            unitName.text = showingUnit.name;
             lifeVariable.text = showingUnit.currentHp.ToString() + " / " + showingUnit.property.maxHp.ToString();
             armorVariable.text = showingUnit.property.armor.ToString();
             damageVariable.text = showingUnit.damage.ToString();
-            rangeVariable.text = "0";
+            rangeVariable.text = showingUnit.property.range.ToString();
             speedVariable.text = showingUnit.remainMove.ToString();
+        }
+    }
+
+    public List<TextMeshProUGUI> tagTextList;
+
+    void ChangeTag(UnitProperty unitProperty)
+    {
+        List<UnitTag> unitTagsList = new List<UnitTag>();
+
+        foreach (AccessoryProperty accessory in unitProperty.accessoryProperty)
+        {
+            if (accessory != null && !unitTagsList.Contains(accessory.accessoryTag) && accessory.accessoryTag != UnitTag.None)
+            {
+                unitTagsList.Add(accessory.accessoryTag);
+            }
+        }
+
+        unitTagsList.Sort(UI_AccessoriesEquip.CompareListByUnitTag);
+        for (int i = 0; i < tagTextList.Count; i++)
+        {
+            if (i < unitTagsList.Count)
+            {
+                tagTextList[i].text = unitTagsList[i].ToString();
+                tagTextList[i].transform.parent.gameObject.SetActive(true);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(tagTextList[0].transform.parent.GetComponent<RectTransform>());
+            }
+
+            else
+            {
+                tagTextList[i].transform.parent.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -121,6 +200,7 @@ public class UI_Controller : MonoBehaviour
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
 
             humanPlayer.unitList.Remove(PlayerController.selectedUnit);
+            WorldController.activeUnitList.Remove(PlayerController.selectedUnit);
             PlayerController.selectedUnit.currentPos.unitsList.Remove(PlayerController.selectedUnit);
             Destroy(PlayerController.selectedUnit.gameObject);
             PlayerController.selectedUnit = null;
@@ -140,6 +220,11 @@ public class UI_Controller : MonoBehaviour
             
     } //Unit Build city Button
 
+    //Building UI
+    [Header("Building UI")]
+    public GameObject buildingUI;
+    public static UI_Building buildingUIController;
+    public TextMeshProUGUI buildingName;
 
     //Lens
     [Header("Lens")]
@@ -201,6 +286,7 @@ public class UI_Controller : MonoBehaviour
     {
         progressUIObj.SetActive(false);
         accessoriesUI.gameObject.SetActive(false);
+        DisableScreenBlock();
 
         UD_Transform.gameObject.SetActive(false);
     }
@@ -208,6 +294,7 @@ public class UI_Controller : MonoBehaviour
     public void OpenUDProgressUI()
     {
         closeAllUIFunction();
+        EnableScreenBlock();
 
         UD_Transform.gameObject.SetActive(true);
         progressUI.gameObject.SetActive(true);
@@ -219,14 +306,19 @@ public class UI_Controller : MonoBehaviour
         UD_title.text = UDProgressTitle;
     }
 
-    public void OpenUnitDevelopmentUI()
+    public void OpenAccessoriesUI()
     {
         closeAllUIFunction();
+        EnableScreenBlock();
 
-        UD_Transform.gameObject.SetActive(true);
         accessoriesUI.gameObject.SetActive(true);
-
+        UD_Transform.gameObject.SetActive(true);
         UD_Transform.anchoredPosition = UD_Position;
+    }
+
+    public void OpenUnitDevelopmentUI()
+    {
+        OpenAccessoriesUI();
         UD_title.text = UnitDevelopmentTitle;
 
         accessoriesUI.UIOpen(ProjectType.UnitDevelopment, UD_transportType, null);
@@ -235,31 +327,27 @@ public class UI_Controller : MonoBehaviour
     public void OpenUnitModifyUI()
     {
         closeAllUIFunction();
-
-        UD_Transform.gameObject.SetActive(true);
-
-        UD_Transform.anchoredPosition = UD_Position;
         UD_title.text = UnitModifyTitle;
 
-        //Open Unit Template Select UI
+        unitTemplateListUI.isModify = true;
+        unitTemplateListUI.OpenTemplateUI();
     }
 
     public void OpenUnitUpgradeUI()
     {
         closeAllUIFunction();
-
-        UD_Transform.gameObject.SetActive(true);
-
-        UD_Transform.anchoredPosition = UD_Position;
         UD_title.text = UnitUpgradeTitle;
 
-        //Open Unit Template Select UI
+        unitTemplateListUI.isUpgrade = true;
+        unitTemplateListUI.OpenTemplateUI();
     }
 
     public static UnitProperty selectedUnitTemplateProperty;
 
     public void OpenTemplateDetail()
     {
+        EnableScreenBlock();
+
         progressUI.gameObject.SetActive(false);
         accessoriesUI.gameObject.SetActive(true);
 

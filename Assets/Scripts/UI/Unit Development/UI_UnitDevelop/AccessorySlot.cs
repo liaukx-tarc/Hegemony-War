@@ -38,13 +38,13 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (Input.GetMouseButtonUp(1) && isEquip)
+        if (Input.GetMouseButtonUp(1) && isEquip && UI_AccessoriesEquip.accessorySlotState)
         {
             removeAccessory();
         }
     }
 
-   bool equitAccessory(AccessoryProperty accessory)
+   public bool equitAccessory(AccessoryProperty accessory)
     {
         if (isEquip)
             removeAccessory();
@@ -52,10 +52,11 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
         if(UI_Controller.accessoriesUI.weight + accessory.weight > UI_Controller.accessoriesUI.transportProperty.load)
         {
             StartCoroutine(redEffect());
+            Debug.Log("OverLoad");
             return false; //transport overload
         }
 
-        foreach (AccessoriesTypes accessoryType in DragObj.accessory.property.accessoryTypes)
+        foreach (AccessoriesTypes accessoryType in accessory.accessoryTypes)
         {
             if (accessoryType == type)
             {

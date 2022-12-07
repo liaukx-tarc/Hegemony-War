@@ -32,7 +32,16 @@ public class UI_CostChange : MonoBehaviour
     {
         costPercentage = Mathf.Min(Convert.ToUInt16(inputField.text), 200);
         costPercentage = Mathf.Max(Convert.ToUInt16(inputField.text), 50);
+        inputField.text = costPercentage.ToString();
         slider.value = costPercentage;
+        costChange();
+    }
+
+    public void ChangeCost(int changedValue)
+    {
+        costPercentage = changedValue;
+        slider.value = changedValue;
+        inputField.text = changedValue.ToString();
         costChange();
     }
 

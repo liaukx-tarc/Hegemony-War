@@ -40,95 +40,97 @@ public class CameraControl : MonoBehaviour
     private void Update()
     {
         hitInfo = new RaycastHit();
-
-        //Check Middle Cell
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitInfo, 100, LayerMask.GetMask(MapTag)))
+        if(!UI_Controller.isUIOpen)
         {
-            currentMiddleCell = hitInfo.collider.GetComponent<MapCell>();
-            if (perviousMiddleCell != null && currentMiddleCell != perviousMiddleCell)
+            //Check Middle Cell
+            if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitInfo, 100, LayerMask.GetMask(MapTag)))
             {
-                //Moving Up
-                if (curMovedDis.y <= -1.75f)
+                currentMiddleCell = hitInfo.collider.GetComponent<MapCell>();
+                if (perviousMiddleCell != null && currentMiddleCell != perviousMiddleCell)
                 {
-                    MapCulling(Direction.Up);
-                    curMovedDis.y += 1.75f;
-                }
-                    
+                    //Moving Up
+                    if (curMovedDis.y <= -1.75f)
+                    {
+                        MapCulling(Direction.Up);
+                        curMovedDis.y += 1.75f;
+                    }
 
-                //Moving Down
-                else if (curMovedDis.y >= 1.75f)
-                {
-                    MapCulling(Direction.Down);
-                    curMovedDis.y -= 1.75f;
-                }
-                    
 
-                //Moving Left
-                if (curMovedDis.x <= -2.0f)
-                {
-                    MapCulling(Direction.Left);
-                    curMovedDis.x += 2.0f;
+                    //Moving Down
+                    else if (curMovedDis.y >= 1.75f)
+                    {
+                        MapCulling(Direction.Down);
+                        curMovedDis.y -= 1.75f;
+                    }
+
+
+                    //Moving Left
+                    if (curMovedDis.x <= -2.0f)
+                    {
+                        MapCulling(Direction.Left);
+                        curMovedDis.x += 2.0f;
+                    }
+
+                    //Moving Right
+                    else if (curMovedDis.x >= 2.0f)
+                    {
+                        MapCulling(Direction.Right);
+                        curMovedDis.x -= 2.0f;
+                    }
                 }
-                   
-                //Moving Right
-                else if (curMovedDis.x >= 2.0f)
+
+                perviousMiddleCell = currentMiddleCell;
+            }
+
+            //Camera Move
+            if (Input.GetButton(CameraUp) && currentMiddleCell.position.y != 0)
+            {
+                curMovedDis.y -= cameraSpeed * Time.deltaTime;
+                this.transform.position += Vector3.forward * cameraSpeed * Time.deltaTime;
+            }
+
+            if (Input.GetButton(CameraDown) && currentMiddleCell.position.y != WorldController.mapSize.y - 1)
+            {
+                curMovedDis.y += cameraSpeed * Time.deltaTime;
+                this.transform.position += Vector3.back * cameraSpeed * Time.deltaTime;
+            }
+
+            if (Input.GetButton(CameraLeft))
+            {
+                curMovedDis.x -= cameraSpeed * Time.deltaTime;
+                this.transform.position += Vector3.left * cameraSpeed * Time.deltaTime;
+            }
+
+            if (Input.GetButton(CameraRight))
+            {
+                curMovedDis.x += cameraSpeed * Time.deltaTime;
+                this.transform.position += Vector3.right * cameraSpeed * Time.deltaTime;
+            }
+
+            //Camera Zoom
+            if (Input.mouseScrollDelta.y > 0)
+            {
+                if (this.transform.position.y > maxZoomIn)
                 {
-                    MapCulling(Direction.Right);
-                    curMovedDis.x -= 2.0f;
+                    this.transform.position += new Vector3(0, -1, 1) * zoomSpeed;
+                    if (this.transform.position.y < maxZoomIn)
+                    {
+                        float fix = maxZoomIn - this.transform.position.y;
+                        this.transform.position -= new Vector3(0, -fix, fix) * zoomSpeed;
+                    }
                 }
             }
 
-            perviousMiddleCell = currentMiddleCell;
-        }
-
-        //Camera Move
-        if (Input.GetButton(CameraUp) && currentMiddleCell.position.y != 0)
-        {
-            curMovedDis.y -= cameraSpeed * Time.deltaTime;
-            this.transform.position += Vector3.forward * cameraSpeed * Time.deltaTime;
-        }
-
-        if (Input.GetButton(CameraDown) && currentMiddleCell.position.y != WorldController.mapSize.y - 1)
-        {
-            curMovedDis.y += cameraSpeed * Time.deltaTime;
-            this.transform.position += Vector3.back * cameraSpeed * Time.deltaTime;
-        }
-
-        if (Input.GetButton(CameraLeft))
-        {
-            curMovedDis.x -= cameraSpeed * Time.deltaTime;
-            this.transform.position += Vector3.left * cameraSpeed * Time.deltaTime;
-        }
-
-        if (Input.GetButton(CameraRight))
-        {
-            curMovedDis.x += cameraSpeed * Time.deltaTime;
-            this.transform.position += Vector3.right * cameraSpeed * Time.deltaTime;
-        }
-
-        //Camera Zoom
-        if (Input.mouseScrollDelta.y > 0)
-        {
-            if (this.transform.position.y > maxZoomIn)
+            else if (Input.mouseScrollDelta.y < 0)
             {
-                this.transform.position += new Vector3(0, -1, 1) * zoomSpeed;
-                if (this.transform.position.y < maxZoomIn)
+                if (this.transform.position.y < maxZoomOut)
                 {
-                    float fix = maxZoomIn - this.transform.position.y;
-                    this.transform.position -= new Vector3(0, -fix, fix) * zoomSpeed;
-                }
-            }
-        }
-
-        else if (Input.mouseScrollDelta.y < 0)
-        {
-            if (this.transform.position.y < maxZoomOut)
-            {
-                this.transform.position += new Vector3(0, 1, -1) * zoomSpeed;
-                if (this.transform.position.y < maxZoomIn)
-                {
-                    float fix = maxZoomIn - this.transform.position.y;
-                    this.transform.position -= new Vector3(0, fix, -fix) * zoomSpeed;
+                    this.transform.position += new Vector3(0, 1, -1) * zoomSpeed;
+                    if (this.transform.position.y < maxZoomIn)
+                    {
+                        float fix = maxZoomIn - this.transform.position.y;
+                        this.transform.position -= new Vector3(0, fix, -fix) * zoomSpeed;
+                    }
                 }
             }
         }
