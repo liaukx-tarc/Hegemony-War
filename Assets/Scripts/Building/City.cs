@@ -6,6 +6,7 @@ public class City : Building
 {
     public Player player;
     public List<Area> areaList;
+    public List<MapCell> controlledCellList;
 
     [Header("Function Status")]
     public bool isProduceGround;

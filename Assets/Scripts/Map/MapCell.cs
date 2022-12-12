@@ -17,17 +17,23 @@ public class MapCell : MonoBehaviour
 {
     //Map Information
     public Vector2 position; //the position of the map cell in the whole map.
-    public Building building;
     public CubePosition cubePosition;
     public MapCell[] neighborCell;
     public int mapType;
     public float cost;
+
+    public City belongCity;
+
     public int connectGroup;
     public int connectGroupCoast;
     public int connectGroupSea;
 
     //Unit
-    public List<Unit> unitsList;
+    public Unit groundUnit;
+    public Unit navalUnit;
+    public Unit airForceUnit;
+    public Building building;
+    public List<MapObject>mapObjectList = new List<MapObject>();
 
     public int q, r, s;
 

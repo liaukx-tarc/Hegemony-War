@@ -210,7 +210,6 @@ public class UI_Controller : MonoBehaviour
     {
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
-            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
             if (PlayerController.selectedUnit != null)
             {
                 PlayerController.selectedUnit.isAction = true;
@@ -224,7 +223,6 @@ public class UI_Controller : MonoBehaviour
     {
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
-            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
             PlayerController.isMoving = true;
         }
     } //Unit Move Button
@@ -237,7 +235,24 @@ public class UI_Controller : MonoBehaviour
 
             humanPlayer.unitList.Remove(PlayerController.selectedUnit);
             WorldController.activeUnitList.Remove(PlayerController.selectedUnit);
-            PlayerController.selectedUnit.currentPos.unitsList.Remove(PlayerController.selectedUnit);
+
+            switch (PlayerController.selectedUnit.property.transportProperty.transportType)
+            {
+                case TransportType.Infantry:
+                case TransportType.Vechicle:
+                    PlayerController.selectedUnit.currentPos.groundUnit = null;
+                    break;
+
+                case TransportType.Aircarft:
+                    PlayerController.selectedUnit.currentPos.airForceUnit = null;
+                    break;
+
+                case TransportType.Ship:
+                    PlayerController.selectedUnit.currentPos.navalUnit = null;
+                    break;
+            }
+
+            PlayerController.selectedUnit.currentPos.mapObjectList.Remove(PlayerController.selectedUnit);
             Destroy(PlayerController.selectedUnit.gameObject);
             WorldController.playerController.CancelUnitSelect();
             WorldController.UI.CloseUnitUI();
@@ -248,7 +263,6 @@ public class UI_Controller : MonoBehaviour
     {
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
-            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
             WorldController.playerController.BuildCity();
         }
             

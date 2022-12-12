@@ -2,12 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Building : MonoBehaviour
+public class Building : MapObject
 {
-    //Component
-    public Renderer rendererCpn;
-    public Collider colliderCpn;
-
     //Data
     public BuildingProperty buildingProperty;
     public MapCell belongCell;

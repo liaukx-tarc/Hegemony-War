@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UI_Building : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class UI_Building : MonoBehaviour
     public GameObject baseNaval;
     public GameObject baseAirForce;
 
+    [Space]
     public GameObject developmentList;
     public GameObject developmentGround;
     public GameObject developmentNaval;
@@ -39,7 +41,7 @@ public class UI_Building : MonoBehaviour
 
     public void BuildingUI_Start()
     {
-
+        UI_Controller.closeAllUIFunction += CloseBuildingUI;
     }
 
     public void OpenBuildingUI(Building building)
@@ -49,9 +51,9 @@ public class UI_Building : MonoBehaviour
         else if (building.GetType() == typeof(Area))
             selectedArea = (Area)building;
 
+        gameObject.SetActive(true);
         UpdateBuildingList();
         UpdateUnitTemplateList();
-        gameObject.SetActive(true);
     }
 
     public void CloseBuildingUI()
@@ -77,8 +79,6 @@ public class UI_Building : MonoBehaviour
         }
         else
         {
-            militaryList.SetActive(true);
-
             if (selectedCity.isProduceGround)
                 baseGround.SetActive(false);
             else
@@ -93,6 +93,8 @@ public class UI_Building : MonoBehaviour
                 baseAirForce.SetActive(false);
             else
                 baseAirForce.SetActive(true);
+
+            militaryList.SetActive(true);
         }
 
         if (selectedCity.isDevelopmentGround && selectedCity.isDevelopmentNaval && selectedCity.isDevelopmentAirForce)
@@ -102,8 +104,6 @@ public class UI_Building : MonoBehaviour
 
         else
         {
-            developmentList.SetActive(true);
-
             if (selectedCity.isDevelopmentGround)
                 developmentGround.SetActive(false);
             else
@@ -118,8 +118,17 @@ public class UI_Building : MonoBehaviour
                 developmentAirForce.SetActive(false);
             else
                 developmentAirForce.SetActive(true);
+
+            developmentList.SetActive(true);
         }
-            
+
+        StartCoroutine(UpdateTemplateLayout());
+    }
+
+    IEnumerator UpdateTemplateLayout()
+    {
+        yield return new WaitForEndOfFrame();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(militaryList.transform.parent.parent.GetComponent<RectTransform>());
     }
 
     public void UpdateUnitTemplateList()

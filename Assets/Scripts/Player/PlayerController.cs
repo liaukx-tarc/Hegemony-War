@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 using static UnityEngine.UI.CanvasScaler;
 
 public class PlayerController : MonoBehaviour
@@ -28,9 +29,7 @@ public class PlayerController : MonoBehaviour
 
     public BuildingProperty cityBuilding;
     public static bool isBuildingArea, isBuildingCity, isMoving;
-    public bool isRightClicking;
-
-    bool isBuildingShow = false;
+    public bool isRightClicking, canBuild;
 
     private void Update()
     {
@@ -60,24 +59,55 @@ public class PlayerController : MonoBehaviour
             return;
 
         DisableSelectCell(redSelectCell);
+        DisableSelectCell(whiteSelectCell.gameObject);
 
         //is Moving unit
         if (isMoving)
         {
-            DisableSelectCell(whiteSelectCell);
             CheckMovetable();
         }
 
         //is Building Area
         else if(isBuildingArea)
         {
-            WorldController.buildingController.BuildCheck(selectingCell);
+            if(selectingCell.building == null && WorldController.buildingController.AreaBuildCheck((City)selectedBuilding, selectingCell))
+            {
+                ActiveSelectCell(greenSelectCell.gameObject, selectingCell.transform);
+                canBuild = true;
+            }
+
+            else
+            {
+                DisableSelectCell(greenSelectCell.gameObject);
+                ActiveSelectCell(redSelectCell, selectingCell.transform);
+
+                WorldController.buildingController.DisableBlueCells();
+                WorldController.buildingController.DisableModel();
+                canBuild = false;
+            }
         }
 
         //is Building City
         else if (isBuildingCity)
         {
-            WorldController.buildingController.BuildCheck(selectingCell);
+            if (selectingCell.building == null && 
+                selectingCell.mapType != (int)MapTypeName.Ocean && 
+                selectingCell.mapType != (int)MapTypeName.Coast &&
+                WorldController.buildingController.CityBuildCheck(selectingCell))
+            {
+                ActiveSelectCell(greenSelectCell.gameObject, selectingCell.transform);
+                canBuild = true;
+            }
+                
+            else
+            {
+                DisableSelectCell(greenSelectCell.gameObject);
+                ActiveSelectCell(redSelectCell, selectingCell.transform);
+                
+                WorldController.buildingController.DisableBlueCells();
+                WorldController.buildingController.DisableModel();
+                canBuild = false;
+            }
         }
 
         else
@@ -192,18 +222,18 @@ public class PlayerController : MonoBehaviour
             else if (Input.GetMouseButtonDown(0)) //Left Click Down
             {
                 DisableSelectCell(greenSelectCell.gameObject);
-                DisableSelectCell(redSelectCell);
-                ActiveSelectCell(yellowSelectCell, selectingCell.transform);
 
                 if (isMoving && isRightClicking) //Cancel Move
                 {
                     isMoving = false;
                     isRightClicking = false;
+                    DisableSelectCell(redSelectCell);
                     DisablePathShow();
                 }
 
                 else if (isMoving && selectingCell != selectedUnit.currentPos)
                 {
+                    DisableSelectCell(redSelectCell);
                     CheckMovetable();
                     if (selectingCell != selectedUnit.currentPos)
                     {
@@ -212,46 +242,23 @@ public class PlayerController : MonoBehaviour
                     isMoving = false;
                 }
 
-                else if (isBuildingArea)
+                else if (isBuildingArea && canBuild)
                 {
                     WorldController.buildingController.BuildArea((City)selectedBuilding, selectingCell);
                     isBuildingArea = false;
                 }
 
-                else if (isBuildingCity)
+                else if (isBuildingCity && canBuild)
                 {
                     WorldController.buildingController.BuildCity(selectingCell);
                     isBuildingCity = false;
                 }
 
-                else
+                else if(!isBuildingCity && !isBuildingArea) //Not Building
                 {
-                    CancelUnitSelect();
-                    selectedBuilding = null;
-
-                    if (selectingCell != previousSelectedCell)
-                    {
-                        isBuildingShow = false;
-                    }
-
-                    if (!isBuildingShow && selectingCell.building != null)
-                    {
-                        selectedBuilding = selectingCell.building;
-                        UI_Controller.buildingUIController.OpenBuildingUI(selectedBuilding);
-                        isBuildingShow = true;
-                    }
-
-                    else
-                    {
-                        if (NextUnit(selectingCell.unitsList))
-                            WorldController.UI.OpenUnitUI(selectedUnit);
-                        else
-                        {
-                            WorldController.UI.CloseUnitUI();
-                            isBuildingShow = false;
-                        }
-                           
-                    }
+                    DisableSelectCell(redSelectCell);
+                    ActiveSelectCell(yellowSelectCell, selectingCell.transform);
+                    NextMapObject(selectingCell.mapObjectList);
                 }
             }
         }
@@ -291,23 +298,51 @@ public class PlayerController : MonoBehaviour
         selectedBuilding = null;
         UI_Controller.buildingUIController.CloseBuildingUI();
 
-        for (int i = 0; i < unitsList.Count; i++)
+        if(unitsList.Count > 0)
         {
-            if (unitsList[i].player == WorldController.currentPlayer)
-            {
-                Unit tempUnit = unitsList[i]; //Move to back
-                unitsList.Remove(tempUnit);
-                unitsList.Add(tempUnit);
+            Unit tempUnit = unitsList[0]; //Move to back
+            unitsList.Remove(tempUnit);
+            unitsList.Add(tempUnit);
 
-                selectedUnit = tempUnit;
-                selectedUnit.showPath = false;
-                WorldController.UI.OpenUnitUI(selectedUnit);
-                return true;
-            } 
+            selectedUnit = tempUnit;
+            selectedUnit.showPath = false;
+            WorldController.UI.OpenUnitUI(selectedUnit);
+            return true;
         }
 
         return false;
     }    
+
+    public bool NextMapObject(List<MapObject> mapObjectList)
+    {
+        selectedBuilding = null;
+        CancelUnitSelect();
+        WorldController.UI.CloseAllUI();
+
+        if(mapObjectList.Count > 0)
+        {
+            MapObject tempObj = mapObjectList[0]; //Move to back
+            mapObjectList.Remove(tempObj);
+            mapObjectList.Add(tempObj);
+
+            if (tempObj.GetType() == typeof(Unit))
+            {
+                selectedUnit = (Unit)tempObj;
+                selectedUnit.showPath = false;
+                WorldController.UI.OpenUnitUI(selectedUnit);
+            }
+            
+            else if(tempObj.GetType() == typeof(City))
+            {
+                selectedBuilding = (Building)tempObj;
+                UI_Controller.buildingUIController.OpenBuildingUI(selectedBuilding);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 
     public void CancelUnitSelect()
     {
@@ -318,13 +353,19 @@ public class PlayerController : MonoBehaviour
 
     public void BuildArea(BuildingProperty building)
     {
+        if (isBuildingArea)
+            WorldController.buildingController.CancelBuilding();
+
         WorldController.buildingController.StartBuilding(building);
         isBuildingArea = true;
     }
 
     public void BuildCity()
     {
-        WorldController.buildingController.StartBuilding(cityBuilding);
-        isBuildingCity = true;
+        if(!isBuildingCity)
+        {
+            WorldController.buildingController.StartBuilding(cityBuilding);
+            isBuildingCity = true;
+        }
     }
 }

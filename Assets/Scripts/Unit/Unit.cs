@@ -2,14 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unit : MonoBehaviour
+public class Unit : MapObject
 {
     //Player
     public Player player;
-
-    //Component
-    public Renderer rendererCpn;
-    public Collider colliderCpn;
 
     //Unit Propety Scriptable Object
     public UnitProperty property;
@@ -79,9 +75,29 @@ public class Unit : MonoBehaviour
         {
             if (moveCount == moveFrame)
             {
-                currentPos.unitsList.Remove(this);
+                switch (property.transportProperty.transportType)
+                {
+                    case TransportType.Infantry:
+                    case TransportType.Vechicle:
+                        currentPos.groundUnit = null;
+                        currentPath.groundUnit = this;
+                        break;
+
+                    case TransportType.Aircarft:
+                        currentPos.airForceUnit = null;
+                        currentPath.airForceUnit = this;
+                        break;
+
+                    case TransportType.Ship:
+                        currentPos.navalUnit = null;
+                        currentPath.navalUnit = this;
+                        break;
+                }
+
+                currentPos.mapObjectList.Remove(this);
                 currentPos = currentPath;
-                currentPos.unitsList.Add(this);
+                currentPos.mapObjectList.Add(this);
+
                 path.Remove(currentPath);
                 showPath = false;
 

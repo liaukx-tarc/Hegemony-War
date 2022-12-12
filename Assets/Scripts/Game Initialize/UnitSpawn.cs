@@ -51,7 +51,25 @@ public class UnitSpawn : MonoBehaviour
                 player.unitList.Add(unit);
                 unit.currentPos = WorldController.map[(int)tempPos.x, (int)tempPos.y];
                 unit.player = player;
-                WorldController.map[(int)tempPos.x, (int)tempPos.y].unitsList.Add(unit);
+                
+
+                switch (unit.property.transportProperty.transportType)
+                {
+                    case TransportType.Infantry:
+                    case TransportType.Vechicle:
+                        WorldController.map[(int)tempPos.x, (int)tempPos.y].groundUnit = unit;
+                        break;
+
+                    case TransportType.Aircarft:
+                        WorldController.map[(int)tempPos.x, (int)tempPos.y].airForceUnit = unit;
+                        break;
+
+                    case TransportType.Ship:
+                        WorldController.map[(int)tempPos.x, (int)tempPos.y].navalUnit = unit;
+                        break;
+                }
+
+                WorldController.map[(int)tempPos.x, (int)tempPos.y].mapObjectList.Add(unit);
             }
         }
     }
