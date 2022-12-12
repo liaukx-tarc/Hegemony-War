@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e5f95aa627d7b14a8309472e4a66136, type: 3}
+  m_Name: City
+  m_EditorClassIdentifier: 
+  buildingName: City
+  icon: {fileID: 21300000, guid: b1005e93579e218428ec472af527cd60, type: 3}
+  model: {fileID: 532884493491251049, guid: b20c3478a2b1eff4c89dc525ee2b7d50, type: 3}
+  backgroundColor: {r: 0.18431373, g: 0.21176471, b: 0.2509804, a: 1}
+  iconColor: {r: 0.18431373, g: 0.21176471, b: 0.2509804, a: 1}
+  buildingType: 0
+  buildingRange: 3
+  maintenanceCost: 0
+  healthPoint: 100
+  defense: 10
+  damage: 20
+  money: 0
+  food: 0
+  productivity: 0
+  sciencePoint: 0
+  developmentPoint: 0

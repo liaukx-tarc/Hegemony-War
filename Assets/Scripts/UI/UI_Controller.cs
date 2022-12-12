@@ -21,10 +21,10 @@ public class UI_Controller : MonoBehaviour
     {
         canvas = GetComponentInChildren<Canvas>();
         buildingUIController = buildingUI.GetComponent<UI_Building>();
+        buildingUIController.BuildingUI_Start();
         UnitUIStart();
         UD_Start();
         unitTemplateListUI.UnitTemplateUI_Start();
-
         closeAllUIFunction += DisableScreenBlock;
         WorldController.playerEndFunction += CloseAllUI;
     }
@@ -37,6 +37,7 @@ public class UI_Controller : MonoBehaviour
 
     private void FixedUpdate()
     {
+        ResourceUpdate();
         UnitUIUpdate();
     }
 
@@ -58,6 +59,41 @@ public class UI_Controller : MonoBehaviour
     {
         screenBlock.SetActive(false);
         isUIOpen = false;
+    }
+
+    //Resource UI
+    [Header("Resource UI")]
+    public RectTransform resourcePanel;
+    public RectTransform money;
+    public TextMeshProUGUI moneyText;
+    public TextMeshProUGUI moneyIncomeText;
+    public RectTransform sciencePoint;
+    public TextMeshProUGUI sciencePointText;
+    public Color increaseColor;
+    public Color decreaseColor;
+
+    const string Plus = "+";
+
+    public void ResourceUpdate()
+    {
+        moneyText.text = WorldController.currentPlayer.money.ToString();
+        
+        if (WorldController.currentPlayer.moneyIncome >= 0)
+        {
+            moneyIncomeText.text = Plus + WorldController.currentPlayer.moneyIncome.ToString();
+            moneyIncomeText.color = increaseColor;
+        }
+        else
+        {
+            moneyIncomeText.text = WorldController.currentPlayer.moneyIncome.ToString();
+            moneyIncomeText.color = decreaseColor;
+        }
+        LayoutRebuilder.ForceRebuildLayoutImmediate(money);
+
+        sciencePointText.text = WorldController.currentPlayer.sciencePoint.ToString();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(sciencePoint);
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(resourcePanel);
     }
 
     //Unit UI
@@ -203,19 +239,17 @@ public class UI_Controller : MonoBehaviour
             WorldController.activeUnitList.Remove(PlayerController.selectedUnit);
             PlayerController.selectedUnit.currentPos.unitsList.Remove(PlayerController.selectedUnit);
             Destroy(PlayerController.selectedUnit.gameObject);
-            PlayerController.selectedUnit = null;
+            WorldController.playerController.CancelUnitSelect();
             WorldController.UI.CloseUnitUI();
         }
     } //Unit Destroy Button
 
-    public void UnitBuilding()
+    public void UnitBuildCity()
     {
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
-            PlayerController.isBuilding= true;
-            Debug.Log("Building Testing");
-            PlayerController.Building.buildingRange = 2;
+            WorldController.playerController.BuildCity();
         }
             
     } //Unit Build city Button

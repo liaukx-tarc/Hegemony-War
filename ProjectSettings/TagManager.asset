@@ -8,6 +8,7 @@ TagManager:
   - WorldController
   - UI
   - PlayerController
+  - BuildingController
   layers:
   - Default
   - TransparentFX

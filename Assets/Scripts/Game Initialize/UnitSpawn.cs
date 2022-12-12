@@ -54,7 +54,5 @@ public class UnitSpawn : MonoBehaviour
                 WorldController.map[(int)tempPos.x, (int)tempPos.y].unitsList.Add(unit);
             }
         }
-
-        Destroy(this.gameObject);
     }
 }

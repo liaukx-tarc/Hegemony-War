@@ -57,7 +57,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
             //GetComponent
             nameText = temp.GetComponentInChildren<TextMeshProUGUI>();
-            icon = temp.GetComponentsInChildren<Image>()[1];
+            icon = temp.GetComponentsInChildren<Image>()[2];
             typeList = temp.GetComponentInChildren<HorizontalLayoutGroup>().gameObject;
             accessorySelectionScirpt = temp.GetComponent<AccessorySelection>();
             accessorySelectionScirpt.property = accessory;
@@ -97,6 +97,8 @@ public class UI_AccessoriesEquip : MonoBehaviour
                         Instantiate(engineTag, typeList.transform);
                         break;
                 }
+
+                LayoutRebuilder.ForceRebuildLayoutImmediate(typeList.GetComponent<RectTransform>());
             }
         }
 
@@ -161,6 +163,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
     public UnitTemplate originalTemplate;
     public Building building;
 
+    public GameObject accessoriesPanel;
     public TextMeshProUGUI createBtnText;
     public Image createBtnBackground;
     public Color createColor;
@@ -191,6 +194,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
                 unitName = unitNameInput.text = WorldController.currentPlayer.name + " Unit " + WorldController.currentPlayer.projectCount; ;
                 unitNameInput.interactable = true;
+                accessoriesPanel.SetActive(true);
                 break;
 
             case ProjectType.UnitModify:
@@ -207,6 +211,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
                 unitName = unitNameInput.text = originalTemplate.property.unitName;
                 unitNameInput.interactable = true;
+                accessoriesPanel.SetActive(true);
                 break;
 
             case ProjectType.UnitUpgrade:
@@ -223,6 +228,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
 
                 unitName = unitNameInput.text = originalTemplate.property.unitName;
                 unitNameInput.interactable = false;
+                accessoriesPanel.SetActive(false);
                 break;
         }
 
@@ -826,6 +832,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
         }
 
         ChangeTag();
+        accessoriesPanel.SetActive(false);
         createButton.SetActive(false);
         costSelection.SetActive(false);
         filterButton.SetActive(false);

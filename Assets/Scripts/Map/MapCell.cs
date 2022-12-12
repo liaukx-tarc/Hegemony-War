@@ -56,14 +56,11 @@ public class MapCell : MonoBehaviour
 
                 if (cellPos.x < 0)
                 {
-                    Debug.Log(WorldController.map.GetLength(0) - 1);
                     cellPos.x = WorldController.map.GetLength(0) - 1;
                 }
 
                 else if (cellPos.x >= WorldController.map.GetLength(0))
                     cellPos.x = cellPos.x - WorldController.map.GetLength(0);
-
-                Debug.Log(cellPos.x);
 
                 if (cellPos.y >= 0 && cellPos.y < WorldController.map.GetLength(1) && cellPos != position)
                 {

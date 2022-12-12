@@ -6,8 +6,6 @@ using UnityEngine.EventSystems;
 
 public class HumanPlayer : Player
 {
-    const string MapTag = "Map";
-
     // Update is called once per frame
     void Update()
     {

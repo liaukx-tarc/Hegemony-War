@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e5f95aa627d7b14a8309472e4a66136, type: 3}
+  m_Name: ResearchCenter
+  m_EditorClassIdentifier: 
+  buildingName: Research Center
+  icon: {fileID: 21300000, guid: b1005e93579e218428ec472af527cd60, type: 3}
+  model: {fileID: 5972107895487770333, guid: ccfc8a12821d0d841a58658121d83efb, type: 3}
+  backgroundColor: {r: 0.09803922, g: 0.16470589, b: 0.3372549, a: 1}
+  iconColor: {r: 0.9607843, g: 0.9647059, b: 0.98039216, a: 1}
+  buildingType: 2
+  buildingRange: 1
+  maintenanceCost: 5
+  healthPoint: 100
+  defense: 10
+  damage: 0
+  money: 0
+  food: 0
+  productivity: 0
+  sciencePoint: 10
+  developmentPoint: 0

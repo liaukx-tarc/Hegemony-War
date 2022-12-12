@@ -57,14 +57,13 @@ public class Unit : MonoBehaviour
                     moveCount = 0;
                     isMoving = true;
                     isAction = false;
-
                     startMove = false;
                 }
 
                 else
                 {
                     isAction = true;
-                    WorldController.autoUnitArrive = false;
+                    isAutoMove = true;
                     WorldController.activeUnitList.Remove(this);
                 }
 
@@ -133,7 +132,6 @@ public class Unit : MonoBehaviour
                     {
                         isAutoMove = true;
                         isAction = true;
-                        WorldController.autoUnitArrive = false;
                         WorldController.activeUnitList.Remove(this);
                         isMoving = false;
                     }
@@ -154,6 +152,7 @@ public class Unit : MonoBehaviour
     public int turnSeachCount;
     public int maxSeachCount;
     public List<MapCell> path = new List<MapCell>();
+    public List<MapCell> eachTurnStartCell = new List<MapCell>();
 
     public void CheckPath(MapCell targetPos)
     {
@@ -218,18 +217,33 @@ public class Unit : MonoBehaviour
                     if (currentNode.mapCell == targetPos)
                     {
                         Node temp = currentNode;
-                        float cost = temp.gCost + currentNode.mapCell.cost; //add the traget mapcell's cost
 
                         while (temp.parent != null)
                         {
                             path.Add(temp.mapCell);
                             temp = temp.parent;
                         }
-
-                        cost -= temp.mapCell.cost; //minus the start mapcell's cost
-
+                        
                         path.Add(temp.mapCell);
                         path.Reverse();
+
+                        //Calculate End Cell of each turn
+                        eachTurnStartCell.Clear();
+
+                        float tempRemainMove = remainMove;
+
+                        foreach (MapCell cell in path)
+                        {
+                            if (cell == currentPos)
+                                continue;
+
+                            tempRemainMove -= cell.cost;
+                            if (tempRemainMove < 0)
+                            { 
+                                eachTurnStartCell.Add(cell);
+                                tempRemainMove = property.speed;
+                            }
+                        }
 
                         endSearch = true;
                         yield break;
@@ -292,6 +306,7 @@ public class Unit : MonoBehaviour
         else
         {
             Debug.Log("Can't Move");
+            isBuilding = false;
             startMove = false;
             endSearch = true;
             yield break;

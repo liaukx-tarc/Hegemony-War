@@ -13,6 +13,7 @@ public class Player : MonoBehaviour
     public int projectCount;//Not include upgrade Progress
 
     //Building List
+    public List<City> cityList = new List<City>();
 
     //Turn Function
     public WorldController.PlayerStartFunction playerStartFunction;
@@ -20,7 +21,7 @@ public class Player : MonoBehaviour
 
     //Resource
     public int money;
-    public int maintanceCost;
+    public int moneyIncome;
     public int sciencePoint;
 
     //Testing
@@ -33,7 +34,7 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     protected void Start()
     {
-        
+
     }
 
     private void Update()
@@ -41,5 +42,15 @@ public class Player : MonoBehaviour
 
     }
 
+    public void UpdateResource()
+    {
+        moneyIncome = 0;
+        sciencePoint = 0;
 
+        foreach (City city in cityList)
+        {
+            moneyIncome += city.moneyIncome;
+            sciencePoint += city.sciencePointIncome;
+        }
+    }
 }

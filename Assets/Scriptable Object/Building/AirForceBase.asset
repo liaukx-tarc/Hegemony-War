@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e5f95aa627d7b14a8309472e4a66136, type: 3}
+  m_Name: AirForceBase
+  m_EditorClassIdentifier: 
+  buildingName: Air Force Base
+  icon: {fileID: 21300000, guid: b1005e93579e218428ec472af527cd60, type: 3}
+  model: {fileID: 7907232999827098698, guid: cc3794f2571de684399f0da7b1b178fa, type: 3}
+  backgroundColor: {r: 0.9098039, g: 0.25490198, b: 0.09411765, a: 1}
+  iconColor: {r: 0.49803922, g: 0.56078434, b: 0.6509804, a: 1}
+  buildingType: 9
+  buildingRange: 1
+  maintenanceCost: 15
+  healthPoint: 100
+  defense: 10
+  damage: 15
+  money: 0
+  food: 0
+  productivity: 5
+  sciencePoint: 0
+  developmentPoint: 0

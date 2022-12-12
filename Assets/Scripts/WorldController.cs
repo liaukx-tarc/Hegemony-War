@@ -10,9 +10,15 @@ using static WorldController;
 public class WorldController : MonoBehaviour
 {
     static public int turn;
-    
+    //Generator
+    public MapCreate mapCreater;
+    public PlayerCreate playerCreater;
+    public UnitSpawn unitSpawner;
+
     //Player Controller
     static public PlayerController playerController;
+
+    static public BuildingController buildingController;
 
     //Player
     static public List<Player> playerList = new List<Player>();
@@ -44,7 +50,9 @@ public class WorldController : MonoBehaviour
         turn = 0;
         UI = GameObject.FindGameObjectWithTag("UI").GetComponent<UI_Controller>();
         playerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<PlayerController>();
+        buildingController = GameObject.FindGameObjectWithTag("BuildingController").GetComponent<BuildingController>();
         nextTurnFunction += turnButton.ChangeTurnText;
+        playerStartFunction += CalcukateResource;
         InitializeWorld();
     }
 
@@ -56,11 +64,10 @@ public class WorldController : MonoBehaviour
 
     void InitializeWorld()
     {
-        GameObject worldGenerator = Instantiate(worldInit, gameObject.transform);
-        worldGenerator.GetComponent<MapCreate>().GenerateWorld();
-        worldGenerator.GetComponent<PlayerCreate>().CreatePlayer();
-        worldGenerator.GetComponent<UnitSpawn>().GenerateUnit();
-        UI_Controller.buildingUIController.BuildingUI_Start();
+        mapCreater.GenerateWorld();
+        playerCreater.CreatePlayer();
+        unitSpawner.GenerateUnit();
+        Destroy(unitSpawner.gameObject);
         GameStart();
     }
 
@@ -148,12 +155,14 @@ public class WorldController : MonoBehaviour
     public delegate void PlayerStartFunction();
     public static PlayerStartFunction playerStartFunction;
 
+    int nextPlayerIndex;
+
     void PlayerStart()
     {
         playerStartFunction -= currentPlayer.playerStartFunction;
         playerEndFunction -= currentPlayer.playerEndFunction;
 
-        int nextPlayerIndex = playerList.IndexOf(currentPlayer) + 1;
+        nextPlayerIndex = playerList.IndexOf(currentPlayer) + 1;
         if (nextPlayerIndex == playerList.Count)
         {
             NextTurn();
@@ -176,6 +185,7 @@ public class WorldController : MonoBehaviour
 
             if (unit.isAutoMove)
                 movingUnitList.Add(unit);
+                
             else
                 activeUnitList.Add(unit);
         }
@@ -200,10 +210,15 @@ public class WorldController : MonoBehaviour
             else
             {
                 UI.CloseUnitUI();
-                PlayerController.selectedUnit = null;
+                playerController.CancelUnitSelect();
             }
         }
             
+    }
+
+    public void CalcukateResource()
+    {
+        currentPlayer.money += currentPlayer.moneyIncome;
     }
 
     public void TurnBtn()
@@ -215,7 +230,7 @@ public class WorldController : MonoBehaviour
 
         else
         {
-            Debug.Log("Button Down");
+            Debug.Log("Turn End Button Down");
             foreach (Unit unit in movingUnitList)
             {
                 unit.startMove = true;
@@ -232,11 +247,6 @@ public class WorldController : MonoBehaviour
 
     public void NextUnit()
     {
-        HumanPlayer player = (HumanPlayer)currentPlayer;
-
-        PlayerController.selectedBuilding = null;
-        UI.buildingUI.SetActive(false);
-
         playerController.NextUnit(activeUnitList);
 
         cameraScirpt.MoveCamera(PlayerController.selectedUnit.currentPos);

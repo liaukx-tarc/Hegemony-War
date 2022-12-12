@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e5f95aa627d7b14a8309472e4a66136, type: 3}
+  m_Name: MilitaryFactory
+  m_EditorClassIdentifier: 
+  buildingName: Military Factory
+  icon: {fileID: 21300000, guid: b1005e93579e218428ec472af527cd60, type: 3}
+  model: {fileID: 8881575580246092634, guid: b766e497bed39db44b513ae5114f7e5e, type: 3}
+  backgroundColor: {r: 0.8627451, g: 0.8666667, b: 0.88235295, a: 1}
+  iconColor: {r: 0.29803923, g: 0.81960785, b: 0.21568628, a: 1}
+  buildingType: 10
+  buildingRange: 1
+  maintenanceCost: 20
+  healthPoint: 100
+  defense: 10
+  damage: 0
+  money: 0
+  food: 0
+  productivity: 0
+  sciencePoint: 0
+  developmentPoint: 20

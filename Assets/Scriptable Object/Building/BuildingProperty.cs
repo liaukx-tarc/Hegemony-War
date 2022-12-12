@@ -19,18 +19,28 @@ public enum BuildingType
     FlightTestCenter
 }
 
-
+[CreateAssetMenu(fileName = "BuildingProperty", menuName = "ScriptableObject/BuildingProperty")]
 public class BuildingProperty : ScriptableObject
 {
+    [Header("Info")]
     public string buildingName;
     public Sprite icon;
     public GameObject model;
+    public Color backgroundColor;
+    public Color iconColor;
     public BuildingType buildingType;
 
-    [Header("Produce")]
+    [Header("Property")]
+    public int buildingRange;
+    public int maintenanceCost;
+    public int healthPoint;
+    public int defense;
+    public int damage;
+
+    [Header("Resource")]
     public int money;
     public int food;
     public int productivity;
-    public int developmentPoint;
     public int sciencePoint;
+    public int developmentPoint;
 }
