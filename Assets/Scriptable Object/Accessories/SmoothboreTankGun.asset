@@ -15,7 +15,7 @@ MonoBehaviour:
   accessoryName: Smoothbore Turrent
   icon: {fileID: 21300000, guid: 3b1040065db695d45baeec6bf36f8f30, type: 3}
   model: {fileID: 0}
-  transportType: 01000000
+  transportType: 00000000
   accessoryTypes: 00000000
   accessoryTag: 0
   maxHp: 5

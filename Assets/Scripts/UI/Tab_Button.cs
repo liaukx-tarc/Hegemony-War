@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -7,6 +8,8 @@ public class Tab_Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public TabGroup tabGroup;
     public GameObject ui;
     public Image background;
+
+    public UnityEvent action;
 
     private void Start()
     {
@@ -17,6 +20,7 @@ public class Tab_Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public void OnPointerClick(PointerEventData eventData)
     {
         tabGroup.OnTabButtonSelected(this);
+        action.Invoke();
     }
 
     public void OnPointerEnter(PointerEventData eventData)

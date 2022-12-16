@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 public class UI_UnitTemplateList : MonoBehaviour
@@ -48,8 +46,7 @@ public class UI_UnitTemplateList : MonoBehaviour
 
     public void UnitTemplateUI_Start()
     {
-        WorldController.playerEndFunction += DisablePlayerUnitTemplate;
-        WorldController.playerStartFunction += ActivePlayerUnitTemplate;
+
         UI_Controller.closeAllUIFunction += CloseTemplateUI;
 
         UT_Position = UT_RectTransform.anchoredPosition;
@@ -58,7 +55,7 @@ public class UI_UnitTemplateList : MonoBehaviour
     public bool tempModify;
     public bool tempUpgrade;
 
-    public void OpenTemplateUI()
+    public void UpdateTemplateList()
     {
         UT_RectTransform.anchoredPosition = UT_Position;
 
@@ -73,19 +70,14 @@ public class UI_UnitTemplateList : MonoBehaviour
 
         unitTemplateUI.SetActive(true);
 
-        if (WorldController.currentPlayer.unitTemplateList.Count > 0)
-            noneText.SetActive(false);
-        else
-            noneText.SetActive(true);
-
-        if(isModify)
+        if (isModify)
         {
             templateLusrTitle.text = Modify + Template;
             detailBtnBackground.color = modifyColor;
             detailBtnText.text = Modify;
         }
 
-        else if(isUpgrade)
+        else if (isUpgrade)
         {
             templateLusrTitle.text = Upgrade + Template;
             detailBtnBackground.color = upgradeColor;
@@ -98,6 +90,74 @@ public class UI_UnitTemplateList : MonoBehaviour
             detailBtnBackground.color = viewColor;
             detailBtnText.text = View;
         }
+    }
+
+    public void OpenTemplateUI()
+    {
+        UpdateTemplateList();
+
+        foreach (Player player in WorldController.playerList)
+        {
+            if(player == WorldController.currentPlayer)
+            {
+                foreach (UnitTemplate unitTemplate in player.unitTemplateList)
+                {
+                    unitTemplate.gameObject.SetActive(true);
+                }
+            }
+
+            else
+            {
+                foreach (UnitTemplate unitTemplate in player.unitTemplateList)
+                {
+                    unitTemplate.gameObject.SetActive(false);
+                }
+            }
+        }
+
+
+        if (WorldController.currentPlayer.unitTemplateList.Count > 0)
+            noneText.SetActive(false);
+        else
+            noneText.SetActive(true);
+    }
+
+    public void OpenTemplateUI(TransportType transportType)
+    {
+        int templateCount = 0;
+
+        UpdateTemplateList();
+
+        foreach (Player player in WorldController.playerList)
+        {
+            if (player == WorldController.currentPlayer)
+            {
+                foreach (UnitTemplate unitTemplate in player.unitTemplateList)
+                {
+                    if (unitTemplate.property.transportProperty.transportType == transportType)
+                    {
+                        unitTemplate.gameObject.SetActive(true);
+                        templateCount++;
+                    }
+                    else
+                        unitTemplate.gameObject.SetActive(false);
+                }
+            }
+
+            else
+            {
+                foreach (UnitTemplate unitTemplate in player.unitTemplateList)
+                {
+                    unitTemplate.gameObject.SetActive(false);
+                }
+            }
+        }
+
+
+        if (templateCount > 0)
+            noneText.SetActive(false);
+        else
+            noneText.SetActive(true);
     }
 
     public void CloseTemplateUI()
@@ -233,10 +293,10 @@ public class UI_UnitTemplateList : MonoBehaviour
     public void onClickFunction()
     {
         if (isModify)
-            UI_Controller.accessoriesUI.UIOpen(ProjectType.UnitModify, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
+            UI_Controller.accessoriesUI.UIOpen(UI_Controller.buildingUIController.selectedCity, ProjectType.UnitModify, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
 
         else if (isUpgrade)
-            UI_Controller.accessoriesUI.UIOpen(ProjectType.UnitUpgrade, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
+            UI_Controller.accessoriesUI.UIOpen(UI_Controller.buildingUIController.selectedCity, ProjectType.UnitUpgrade, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
 
         else
             UI_Controller.accessoriesUI.showTemplateDetail(selectedTemplate.property);
@@ -269,30 +329,6 @@ public class UI_UnitTemplateList : MonoBehaviour
             else
             {
                 tagTextArray[i].transform.parent.gameObject.SetActive(false);
-            }
-        }
-    }
-
-    public void DisablePlayerUnitTemplate()
-    {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
-            foreach (UnitTemplate unitTemplate in player.unitTemplateList)
-            {
-                unitTemplate.gameObject.SetActive(false);
-            }
-        }
-    }
-
-    public void ActivePlayerUnitTemplate()
-    {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
-            foreach (UnitTemplate unitTemplate in player.unitTemplateList)
-            {
-                unitTemplate.gameObject.SetActive(true);
             }
         }
     }

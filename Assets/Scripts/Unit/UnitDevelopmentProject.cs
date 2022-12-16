@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -51,9 +50,9 @@ public class UnitDevelopmentProject : MonoBehaviour
     public TagController.UnitFunction runtimeFunction;
 
     public int developmentPoint = 0;
-    public List<Building> developmentCenters = new List<Building>();
+    public List<City> developmentCenters = new List<City>();
 
-    public void ProjectCreate(Player player, Building developmentCenter, ProjectType projectType, string projectName, int projectBudget, int developCost, UnitTemplate originalTemplate, UnitProperty unitProperty, TagController.UnitFunction runtimeFunction)
+    public void ProjectCreate(Player player, City developmentCenter, ProjectType projectType, string projectName, int projectBudget, int developCost, UnitTemplate originalTemplate, UnitProperty unitProperty, TagController.UnitFunction runtimeFunction)
     {
         switch (projectType)
         {
@@ -81,7 +80,7 @@ public class UnitDevelopmentProject : MonoBehaviour
         this.projectBudget = projectBudget;
         budgetText.text = "- " + projectBudget.ToString();
 
-        this.remainDevelopCost = developCost;
+        remainDevelopCost = developCost;
         completeDPText.text = "0";
         maxDPText.text = developCost.ToString();
 
@@ -96,10 +95,11 @@ public class UnitDevelopmentProject : MonoBehaviour
         this.unitProperty = unitProperty;
         this.runtimeFunction = runtimeFunction;
 
-        WorldController.currentPlayer.playerStartFunction += this.ProjectCompleteCheck;
+        WorldController.currentPlayer.playerStartFunction += ProjectCompleteCheck;
+        WorldController.playerStartFunction += ProjectCompleteCheck;
     }
 
-    int CalculateRemainTurn()
+    public int CalculateRemainTurn()
     {
         int remainTurn = remainDevelopCost / developmentPoint;
         if (remainDevelopCost % developmentPoint != 0)
@@ -107,22 +107,23 @@ public class UnitDevelopmentProject : MonoBehaviour
         return remainTurn;
     }
 
-    public void AddDevelopmentCenter(Building building)
+    public void AddDevelopmentCenter(City city)
     {
-        developmentCenters.Add(building);
-        Debug.Log("Builing Added");
-        developmentPoint += 100;
-        //developmentPoint += building.developmentPoint;
+        developmentCenters.Add(city);
+        city.developmentProject = this;
+        UpdateProjectData();
     }
 
-    public void RemoveDevelopmentCenter(Building building)
+    public void RemoveDevelopmentCenter(City city)
     {
-        developmentCenters.Remove(building);
-        //developmentPoint -= building.developmentPoint;
+        developmentCenters.Remove(city);
+        city.developmentProject = null;
+        UpdateProjectData();
     }
 
     public void ProjectCompleteCheck()
     {
+        UpdateProjectData();
         remainDevelopCost -= developmentPoint;
         progressBar.value += developmentPoint;
         completeDPText.text = progressBar.value.ToString();
@@ -139,7 +140,6 @@ public class UnitDevelopmentProject : MonoBehaviour
     public void EndProject()
     {
         player.projectList.Remove(this.gameObject);
-        UI_Controller.buildingUIController.UpdateUnitTemplateList();
         WorldController.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
         WorldController.playerStartFunction -= ProjectCompleteCheck;
 
@@ -163,9 +163,20 @@ public class UnitDevelopmentProject : MonoBehaviour
         }
     }
 
+    public void UpdateProjectData()
+    {
+        developmentPoint = 0;
+
+        foreach (City city in developmentCenters)
+        {
+            developmentPoint += city.developmentPointIncome;
+        }
+
+        turnText.text = CalculateRemainTurn().ToString();
+    }
+
     public void ShowDetail()
     {
-        UI_Controller.progressUI.ShowProjectDetail(projectName, unitProperty, developmentCenters);
-        UI_Controller.selectedUnitTemplateProperty = unitProperty;
+        UI_Controller.progressUI.ShowProjectDetail(this);
     }
 }

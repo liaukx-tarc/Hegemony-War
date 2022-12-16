@@ -385,6 +385,7 @@ MonoBehaviour:
   buildingIcon: {fileID: 4242273520337652994}
   templateBackground: {fileID: 4242273519604040603}
   buildingName: {fileID: 4242273519150560083}
+  produceVariable: {fileID: 627112084994875472}
   building: {fileID: 0}
 --- !u!1 &4242273520302882122
 GameObject:
@@ -802,6 +803,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 98eba831ad9ec28488f37e5f667f84c5, type: 3}
+--- !u!114 &627112084994875472 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5049318079631712910, guid: 98eba831ad9ec28488f37e5f667f84c5,
+    type: 3}
+  m_PrefabInstance: {fileID: 5665874763732386526}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &6512662353191795710 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1495376442053163296, guid: 98eba831ad9ec28488f37e5f667f84c5,

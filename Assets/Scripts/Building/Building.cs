@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Building : MapObject
@@ -15,7 +13,6 @@ public class Building : MapObject
     virtual public void CreateBuilding(Renderer rendererCpn, Collider colliderCpn, BuildingProperty buildingProperty, MapCell belongCell)
     {
         this.rendererCpn = rendererCpn;
-        this.colliderCpn = colliderCpn;
         this.buildingProperty = buildingProperty;
         this.belongCell = belongCell;
         
@@ -27,7 +24,6 @@ public class Building : MapObject
     virtual public void CreateBuilding(Renderer rendererCpn, Collider colliderCpn, BuildingProperty buildingProperty, MapCell belongCell, City city)
     {
         this.rendererCpn = rendererCpn;
-        this.colliderCpn = colliderCpn;
         this.buildingProperty = buildingProperty;
         this.belongCell = belongCell;
 

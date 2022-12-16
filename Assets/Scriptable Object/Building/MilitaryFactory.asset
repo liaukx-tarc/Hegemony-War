@@ -19,6 +19,7 @@ MonoBehaviour:
   iconColor: {r: 0.29803923, g: 0.81960785, b: 0.21568628, a: 1}
   buildingType: 10
   buildingRange: 1
+  produceCost: 600
   maintenanceCost: 20
   healthPoint: 100
   defense: 10

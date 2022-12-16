@@ -1,8 +1,4 @@
-using Unity.Burst.CompilerServices;
-using UnityEditor.Rendering;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 public class CameraControl : MonoBehaviour
 {
@@ -32,7 +28,7 @@ public class CameraControl : MonoBehaviour
     MapCell currentMiddleCell;
     MapCell tempCell;
     Vector2 curMovedDis;
-    Vector3 heighFix = new Vector3(0, 1.2f, 0);
+    Vector3 heighFix = Vector3.up;
     bool isCulled;
     int culledCount = 0;
     
@@ -161,7 +157,6 @@ public class CameraControl : MonoBehaviour
                 foreach (MapObject mapObject in cell.mapObjectList)
                 {
                     mapObject.rendererCpn.enabled = false;
-                    mapObject.colliderCpn.enabled = false;
                 }
             }
         }
@@ -178,7 +173,6 @@ public class CameraControl : MonoBehaviour
                 foreach (MapObject mapObject in tempCell.mapObjectList)
                 {
                     mapObject.rendererCpn.enabled = false;
-                    mapObject.colliderCpn.enabled = false;
                 }
 
                 tempCell.gameObject.SetActive(false);
@@ -211,7 +205,10 @@ public class CameraControl : MonoBehaviour
 
                         foreach (MapObject mapObject in cell.mapObjectList)
                         {
-                            mapObject.transform.position = cell.transform.position + heighFix;
+                            mapObject.transform.position = cell.transform.position;
+
+                            if (mapObject.GetType() == typeof(Unit))
+                                mapObject.transform.position += heighFix;
                         }
                     }
                     isCulled = true;
@@ -225,7 +222,6 @@ public class CameraControl : MonoBehaviour
                     foreach (MapObject mapObject in cell.mapObjectList)
                     {
                         mapObject.rendererCpn.enabled = true;
-                        mapObject.colliderCpn.enabled = true;
                     }
 
                     displayMap[w + halfDisplayX, h + halfDisplayY] = cell;
@@ -261,7 +257,6 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
-                                    mapObject.colliderCpn.enabled = false;
                                 }
                             }
 
@@ -281,7 +276,6 @@ public class CameraControl : MonoBehaviour
                                     foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                     {
                                         mapObject.rendererCpn.enabled = true;
-                                        mapObject.colliderCpn.enabled = true;
                                     }
                                 }
 
@@ -314,7 +308,6 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
-                                    mapObject.colliderCpn.enabled = false;
                                 }
                             }
 
@@ -333,7 +326,6 @@ public class CameraControl : MonoBehaviour
                                     foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                     {
                                         mapObject.rendererCpn.enabled = true;
-                                        mapObject.colliderCpn.enabled = true;
                                     }
                                 }
 
@@ -369,7 +361,6 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
-                                    mapObject.colliderCpn.enabled = false;
                                 }
                             }
 
@@ -404,9 +395,12 @@ public class CameraControl : MonoBehaviour
                                         tempCell = WorldController.map[(int)displayMap[x, y].position.x, i];
                                         tempCell.transform.position = WorldController.map[mapX, i].transform.position + Vector3.left * 2;
 
-                                        foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
+                                        foreach (MapObject mapObject in tempCell.mapObjectList)
                                         {
-                                            mapObject.transform.position = tempCell.transform.position + heighFix;
+                                            mapObject.transform.position = tempCell.transform.position;
+
+                                            if (mapObject.GetType() == typeof(Unit))
+                                                mapObject.transform.position += heighFix;
                                         }
                                     }
                                     isCulled = true;
@@ -417,7 +411,6 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = true;
-                                    mapObject.colliderCpn.enabled = true;
                                 }
                             }
 
@@ -452,7 +445,6 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
-                                    mapObject.colliderCpn.enabled = false;
                                 }
                             }
 
@@ -488,9 +480,13 @@ public class CameraControl : MonoBehaviour
                                         tempCell = WorldController.map[(int)displayMap[x, y].position.x, i];
                                         tempCell.transform.position = WorldController.map[mapX, i].transform.position + Vector3.right * 2;
 
-                                        foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
+                                        foreach (MapObject mapObject in tempCell.mapObjectList)
                                         {
-                                            mapObject.transform.position = tempCell.transform.position + heighFix;
+                                            Debug.Log(mapObject.name + " " + mapObject.transform.position);
+                                            mapObject.transform.position = tempCell.transform.position;
+
+                                            if (mapObject.GetType() == typeof(Unit))
+                                                mapObject.transform.position += heighFix;
                                         }
                                     }
                                     isCulled = true;
@@ -501,7 +497,6 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = true;
-                                    mapObject.colliderCpn.enabled = true;
                                 }
                             }
 

@@ -1,10 +1,8 @@
 using System;
-using System.Reflection;
 using UnityEngine;
 
 public enum TransportType
 {
-    Infantry,
     Vechicle,
     Aircarft,
     Ship

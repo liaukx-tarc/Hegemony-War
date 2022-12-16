@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Tank
   m_EditorClassIdentifier: 
   transportName: Tank
-  model: {fileID: 0}
-  transportType: 1
+  model: {fileID: 3791568183593992563, guid: 398a212088ad4a243b91d7bec05e84fd, type: 3}
+  transportType: 0
   heavyWeaponNum: 1
   mediumWeaponNum: 0
   lightWeaponNum: 2

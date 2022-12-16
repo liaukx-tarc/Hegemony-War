@@ -15,7 +15,7 @@ MonoBehaviour:
   accessoryName: Computer
   icon: {fileID: 21300000, guid: 5c62d70b5bd82674885b40eb3041933d, type: 3}
   model: {fileID: 0}
-  transportType: 010000000200000003000000
+  transportType: 000000000100000002000000
   accessoryTypes: 05000000
   accessoryTag: 5
   maxHp: 3

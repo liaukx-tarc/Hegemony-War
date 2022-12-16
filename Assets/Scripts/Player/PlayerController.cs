@@ -1,11 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
-using static UnityEngine.UI.CanvasScaler;
 
 public class PlayerController : MonoBehaviour
 {
@@ -161,6 +157,7 @@ public class PlayerController : MonoBehaviour
                         turnCount++;
                     }
 
+                    blueSelectCellList[i].resourceIcon.transform.parent.gameObject.SetActive(false);
                     ActiveSelectCell(blueSelectCellList[i].gameObject, selectedUnit.path[i].transform);
                 }
 
@@ -193,6 +190,7 @@ public class PlayerController : MonoBehaviour
                 {
                     if (selectedUnit.targetPos != selectedUnit.currentPos)
                     {
+                        selectedUnit.isSleep = false;
                         selectedUnit.startMove = true;
                     }
                     isMoving = false;
@@ -206,6 +204,7 @@ public class PlayerController : MonoBehaviour
                 if (isBuildingArea || isBuildingCity || isMoving) //Cancel
                 {
                     isBuildingArea = isBuildingCity = isMoving = false;
+                    WorldController.buildingController.CancelBuilding();
                     DisablePathShow();
                 }
 
@@ -237,6 +236,7 @@ public class PlayerController : MonoBehaviour
                     CheckMovetable();
                     if (selectingCell != selectedUnit.currentPos)
                     {
+                        selectedUnit.isSleep = false;
                         selectedUnit.startMove = true;
                     }
                     isMoving = false;
@@ -244,13 +244,29 @@ public class PlayerController : MonoBehaviour
 
                 else if (isBuildingArea && canBuild)
                 {
-                    WorldController.buildingController.BuildArea((City)selectedBuilding, selectingCell);
+                    City selectingCity = (City)selectedBuilding;
+                    selectingCity.Produce(WorldController.buildingController.modelObject, WorldController.buildingController.selectingBuilding, selectingCell);
                     isBuildingArea = false;
                 }
 
                 else if (isBuildingCity && canBuild)
                 {
-                    WorldController.buildingController.BuildCity(selectingCell);
+                    if (selectingCell != selectedUnit.currentPos)
+                    {
+                        DisableSelectCell(redSelectCell);
+                        CheckMovetable();
+                        selectedUnit.cityModel = WorldController.buildingController.modelObject;
+                        WorldController.buildingController.modelObject.SetActive(false);
+                        selectedUnit.isBuilding = true;
+                        selectedUnit.isSleep = false;
+                        selectedUnit.startMove = true;
+                    }
+                    else
+                    {
+                        WorldController.buildingController.BuildCity(WorldController.currentPlayer, WorldController.buildingController.modelObject, selectingCell);
+                        selectedUnit.UnitDestroy();
+                    }
+
                     isBuildingCity = false;
                 }
 
@@ -277,6 +293,7 @@ public class PlayerController : MonoBehaviour
             DisableSelectCell(blueCell.gameObject);
         }
 
+        greenSelectCell.turnUI.SetActive(false);
         DisableSelectCell(greenSelectCell.gameObject);
     }
 

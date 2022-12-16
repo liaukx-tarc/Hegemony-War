@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1541b179070c6e44ab762bd4c7b9f9bd, type: 3}
+  m_Name: Infantry
+  m_EditorClassIdentifier: 
+  transportName: Infantry
+  model: {fileID: 7583435434359236216, guid: bdaccb7992bc4e544822b439dec53713, type: 3}
+  transportType: 0
+  heavyWeaponNum: 0
+  mediumWeaponNum: 1
+  lightWeaponNum: 2
+  defenceEquipmentNum: 1
+  auxiliaryEquipmentNum: 2
+  maxHp: 10
+  armor: 3
+  speed: 2
+  load: 15
+  budgetCost: 2
+  developCost: 50
+  maintanceCost: 2
+  produceCost: 100

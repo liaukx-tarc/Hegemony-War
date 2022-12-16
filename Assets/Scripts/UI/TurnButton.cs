@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,7 +16,7 @@ public class TurnButton : MonoBehaviour
     Color nextColor = new Color(0.95f, 0.75f, 0.08f);
     Color nextSelectColor = new Color(0.98f, 0.85f, 0.45f);
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (WorldController.activeUnitList.Count != 0)
         {

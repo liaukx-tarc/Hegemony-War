@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -41,8 +40,11 @@ public class TabGroup : MonoBehaviour
 
     public void OnTabButtonSelected(Tab_Button button)
     {
-        selectedButton.background.color = exitColor;
-        selectedButton.ui.SetActive(false);
+        if(selectedButton != null)
+        {
+            selectedButton.background.color = exitColor;
+            selectedButton.ui.SetActive(false);
+        }
 
         selectedButton = button;
         button.background.color = selectedColor;

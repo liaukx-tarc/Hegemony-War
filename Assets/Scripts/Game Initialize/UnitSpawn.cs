@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class UnitSpawn : MonoBehaviour
@@ -10,9 +8,8 @@ public class UnitSpawn : MonoBehaviour
     public Material mtrAllianceUnit;
     public Material mtrEnemeyUnit;
 
-    public UnitProperty unitProperty;
+    public UnitProperty settlerProperty;
 
-    GameObject tempUnit;
     Vector2 tempPos;
 
     public void GenerateUnit()
@@ -30,46 +27,7 @@ public class UnitSpawn : MonoBehaviour
                 } while (WorldController.map[(int)tempPos.x, (int)tempPos.y].cost == 0 || WorldController.map[(int)tempPos.x, (int)tempPos.y].mapType == (int)MapTypeName.Coast ||
                              WorldController.map[(int)tempPos.x, (int)tempPos.y].mapType == (int)MapTypeName.Ocean);
 
-                tempUnit = Instantiate(unitObj, WorldController.map[(int)tempPos.x, (int)tempPos.y].transform.position + new Vector3(0, 1.2f, 0), 
-                    Quaternion.identity, player.unitListObj.transform);
-                tempUnit.name = "Unit " + (i + 1);
-               
-                Unit unit = tempUnit.GetComponent<Unit>();
-                unit.property = unitProperty;
-                unit.InitializeUnit();
-
-                if (player is HumanPlayer)
-                {
-                    tempUnit.GetComponent<Renderer>().material = mtrAllianceUnit;
-                }
-
-                else if (player is AI_Player)
-                {
-                    tempUnit.GetComponent<Renderer>().material = mtrEnemeyUnit;
-                }
-
-                player.unitList.Add(unit);
-                unit.currentPos = WorldController.map[(int)tempPos.x, (int)tempPos.y];
-                unit.player = player;
-                
-
-                switch (unit.property.transportProperty.transportType)
-                {
-                    case TransportType.Infantry:
-                    case TransportType.Vechicle:
-                        WorldController.map[(int)tempPos.x, (int)tempPos.y].groundUnit = unit;
-                        break;
-
-                    case TransportType.Aircarft:
-                        WorldController.map[(int)tempPos.x, (int)tempPos.y].airForceUnit = unit;
-                        break;
-
-                    case TransportType.Ship:
-                        WorldController.map[(int)tempPos.x, (int)tempPos.y].navalUnit = unit;
-                        break;
-                }
-
-                WorldController.map[(int)tempPos.x, (int)tempPos.y].mapObjectList.Add(unit);
+                WorldController.unitController.GenerateUnit(player, settlerProperty, WorldController.map[(int)tempPos.x, (int)tempPos.y]);
             }
         }
     }

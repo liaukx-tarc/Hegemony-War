@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -62,7 +61,7 @@ public class MapCell : MonoBehaviour
 
                 if (cellPos.x < 0)
                 {
-                    cellPos.x = WorldController.map.GetLength(0) - 1;
+                    cellPos.x = WorldController.map.GetLength(0) + cellPos.x;
                 }
 
                 else if (cellPos.x >= WorldController.map.GetLength(0))

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -76,6 +77,8 @@ public class UI_Controller : MonoBehaviour
 
     public void ResourceUpdate()
     {
+        WorldController.currentPlayer.UpdateResource();
+
         moneyText.text = WorldController.currentPlayer.money.ToString();
         
         if (WorldController.currentPlayer.moneyIncome >= 0)
@@ -102,11 +105,11 @@ public class UI_Controller : MonoBehaviour
 
     public Image iconBackground;
     public Image icon;
-    public Color infantryColor;
     public Color vechicleColor;
     public Color aircarftColor;
     public Color shipColor;
 
+    [Header("Unit state Text")]
     public TextMeshProUGUI unitName;
     public TextMeshProUGUI lifeVariable;
     public TextMeshProUGUI armorVariable;
@@ -115,6 +118,13 @@ public class UI_Controller : MonoBehaviour
     public TextMeshProUGUI speedVariable;
     public TextMeshProUGUI maintainCostVariable;
 
+    [Header("Unit UI Button")]
+    public GameObject attackButton;
+    public GameObject buildButton;
+    public GameObject sleepButton;
+    public GameObject wakeupButton;
+
+    [Space]
     public Unit showingUnit;
     public bool unitUIOn = false;
 
@@ -126,13 +136,33 @@ public class UI_Controller : MonoBehaviour
     public void OpenUnitUI(Unit unit)
     {
         showingUnit = unit;
-        
+
+        if (!unit.property.isSettler)
+        {
+            buildButton.SetActive(false);
+            attackButton.SetActive(true);
+        }    
+        else
+        {
+            attackButton.SetActive(false);
+            buildButton.SetActive(true);
+        }
+
+        if(unit.isSleep)
+        {
+            sleepButton.SetActive(false);
+            wakeupButton.SetActive(true);
+        }
+
+        else
+        {
+            wakeupButton.SetActive(false);
+            sleepButton.SetActive(true);
+        }
+            
+
         switch (unit.property.transportProperty.transportType)
         {
-            case TransportType.Infantry:
-                iconBackground.color = infantryColor;
-                break;
-
             case TransportType.Vechicle:
                 iconBackground.color = vechicleColor;
                 break;
@@ -205,7 +235,32 @@ public class UI_Controller : MonoBehaviour
             }
         }
     }
+    //Unit Attack Button
+    public void UnitAttack()
+    {
 
+    }
+
+    //Unit Build city Button
+    public void UnitBuildCity()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            WorldController.playerController.BuildCity();
+        }
+
+    }
+
+    //Unit Move Button
+    public void UnitMove()
+    {
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            PlayerController.isMoving = true;
+        }
+    }
+
+    //Unit Skip Button
     public void UnitSkip()
     {
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
@@ -217,56 +272,34 @@ public class UI_Controller : MonoBehaviour
                 GameObject.FindGameObjectWithTag("WorldController").GetComponent<WorldController>().NextUnit();
             }
         }
-    } //Unit Skip Button
+    }
 
-    public void UnitMove()
+   //Unit Sleep Button
+   public void UnitSleep()
     {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            PlayerController.isMoving = true;
-        }
-    } //Unit Move Button
+        PlayerController.selectedUnit.isSleep = true;
+        WorldController.activeUnitList.Remove(PlayerController.selectedUnit);
+        CloseUnitUI();
+    }
 
+    //Unit Wake up Button
+    public void UnitWakeup()
+    {
+        PlayerController.selectedUnit.isSleep = false;
+        WorldController.activeUnitList.Add(PlayerController.selectedUnit);
+        CloseUnitUI();
+    }
+
+    //Unit Destroy Button
     public void DestroyUnit()
     {
         if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
         {
             HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
 
-            humanPlayer.unitList.Remove(PlayerController.selectedUnit);
-            WorldController.activeUnitList.Remove(PlayerController.selectedUnit);
-
-            switch (PlayerController.selectedUnit.property.transportProperty.transportType)
-            {
-                case TransportType.Infantry:
-                case TransportType.Vechicle:
-                    PlayerController.selectedUnit.currentPos.groundUnit = null;
-                    break;
-
-                case TransportType.Aircarft:
-                    PlayerController.selectedUnit.currentPos.airForceUnit = null;
-                    break;
-
-                case TransportType.Ship:
-                    PlayerController.selectedUnit.currentPos.navalUnit = null;
-                    break;
-            }
-
-            PlayerController.selectedUnit.currentPos.mapObjectList.Remove(PlayerController.selectedUnit);
-            Destroy(PlayerController.selectedUnit.gameObject);
-            WorldController.playerController.CancelUnitSelect();
-            WorldController.UI.CloseUnitUI();
+            PlayerController.selectedUnit.UnitDestroy();
         }
-    } //Unit Destroy Button
-
-    public void UnitBuildCity()
-    {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            WorldController.playerController.BuildCity();
-        }
-            
-    } //Unit Build city Button
+    } 
 
     //Building UI
     [Header("Building UI")]
@@ -301,12 +334,8 @@ public class UI_Controller : MonoBehaviour
     public static UI_Progress progressUI;
 
     //Accessories Eqiup
-    const string UnitDevelopmentTitle = "Unit Development";
-    const string UnitModifyTitle = "Unit Modify";
-    const string UnitUpgradeTitle = "Unit Upgrade";
     public GameObject accessoriesEquipUIObj;
     public static UI_AccessoriesEquip accessoriesUI;
-    public static TransportType UD_transportType;
 
     //Unit Template UI
     public static UI_UnitTemplateList unitTemplateListUI;
@@ -325,9 +354,6 @@ public class UI_Controller : MonoBehaviour
         WorldController.playerEndFunction += progressUI.DisablePlayerProject;
 
         closeAllUIFunction += UD_Close;
-
-        Debug.Log("Testing");
-        UD_transportType = TransportType.Vechicle;
     }
 
     public void UD_Close()
@@ -345,10 +371,7 @@ public class UI_Controller : MonoBehaviour
         EnableScreenBlock();
 
         UD_Transform.gameObject.SetActive(true);
-        progressUI.gameObject.SetActive(true);
-
-        progressUI.infoPanel.SetActive(false);
-        selectedUnitTemplateProperty = null;
+        progressUI.OpenProgressUI();
 
         UD_Transform.anchoredPosition = UD_Position;
         UD_title.text = UDProgressTitle;
@@ -362,43 +385,5 @@ public class UI_Controller : MonoBehaviour
         accessoriesUI.gameObject.SetActive(true);
         UD_Transform.gameObject.SetActive(true);
         UD_Transform.anchoredPosition = UD_Position;
-    }
-
-    public void OpenUnitDevelopmentUI()
-    {
-        OpenAccessoriesUI();
-        UD_title.text = UnitDevelopmentTitle;
-
-        accessoriesUI.UIOpen(ProjectType.UnitDevelopment, UD_transportType, null);
-    }
-
-    public void OpenUnitModifyUI()
-    {
-        closeAllUIFunction();
-        UD_title.text = UnitModifyTitle;
-
-        unitTemplateListUI.isModify = true;
-        unitTemplateListUI.OpenTemplateUI();
-    }
-
-    public void OpenUnitUpgradeUI()
-    {
-        closeAllUIFunction();
-        UD_title.text = UnitUpgradeTitle;
-
-        unitTemplateListUI.isUpgrade = true;
-        unitTemplateListUI.OpenTemplateUI();
-    }
-
-    public static UnitProperty selectedUnitTemplateProperty;
-
-    public void OpenTemplateDetail()
-    {
-        EnableScreenBlock();
-
-        progressUI.gameObject.SetActive(false);
-        accessoriesUI.gameObject.SetActive(true);
-
-        accessoriesUI.showTemplateDetail(selectedUnitTemplateProperty);
     }
 }

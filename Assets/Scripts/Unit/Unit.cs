@@ -17,6 +17,7 @@ public class Unit : MapObject
     public float remainMove;
 
     public bool isAction = false;
+    public bool isSleep = false;
     public MapCell currentPos;
 
     //Moving
@@ -32,6 +33,7 @@ public class Unit : MapObject
     //Building
     public GameObject buildingObj;
     public bool isBuilding = false;
+    public GameObject cityModel;
 
     public void InitializeUnit()
     {
@@ -77,7 +79,6 @@ public class Unit : MapObject
             {
                 switch (property.transportProperty.transportType)
                 {
-                    case TransportType.Infantry:
                     case TransportType.Vechicle:
                         currentPos.groundUnit = null;
                         currentPath.groundUnit = this;
@@ -103,30 +104,30 @@ public class Unit : MapObject
 
                 if (currentPos == targetPos)
                 {
-                    if (isBuilding)
-                    {
-                        GameObject building = Instantiate(buildingObj,
-                            new Vector3(targetPos.transform.position.x, targetPos.transform.position.y + 1.0f, targetPos.transform.position.z),
-                            Quaternion.identity);
-                        building.transform.parent = targetPos.transform;
-                        building.name = "Building" + " " + ++player.buildNum;
-                        targetPos.building = building.GetComponent<Building>();
-
-                        isBuilding = false;
-                    }
-
                     if(isAutoMove)
                     {
                         isAction = false;
                         isAutoMove = false;
-                        WorldController.autoUnitArrive = true;
                         WorldController.activeUnitList.Add(this);
+                        WorldController.movingUnitList.Remove(this);
+                        WorldController.arriveUnit = this;
+
+                        if (!isBuilding)
+                            WorldController.autoUnitArrive = true;
                     }
 
                     else
                     {
                         isAction = true;
                         WorldController.activeUnitList.Remove(this);
+                    }
+
+                    if (isBuilding)
+                    {
+                        WorldController.buildingController.BuildCity(player, cityModel, currentPos);
+                        cityModel = null;
+                        UnitDestroy();
+                        isBuilding = false;
                     }
 
                     isMoving = false;
@@ -327,5 +328,40 @@ public class Unit : MapObject
             endSearch = true;
             yield break;
         }
+    }
+
+    public void UnitDestroy()
+    {
+        player.unitList.Remove(this);
+        WorldController.activeUnitList.Remove(this);
+        WorldController.movingUnitList.Remove(this);
+
+        switch (property.transportProperty.transportType)
+        {
+            case TransportType.Vechicle:
+                currentPos.groundUnit = null;
+                break;
+
+            case TransportType.Aircarft:
+                currentPos.airForceUnit = null;
+                break;
+
+            case TransportType.Ship:
+                currentPos.navalUnit = null;
+                break;
+        }
+
+        currentPos.mapObjectList.Remove(this);
+
+        if(PlayerController.selectedUnit == this)
+        {
+            WorldController.playerController.CancelUnitSelect();
+            WorldController.UI.CloseUnitUI();
+        }
+
+        if(cityModel != null)
+            Destroy(cityModel);
+
+        Destroy(this.gameObject);
     }
 }

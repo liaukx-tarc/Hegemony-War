@@ -15,7 +15,7 @@ MonoBehaviour:
   accessoryName: Tank Armor
   icon: {fileID: 21300000, guid: c244042193f9f564fa8e611dbec66b58, type: 3}
   model: {fileID: 0}
-  transportType: 01000000
+  transportType: 00000000
   accessoryTypes: 03000000
   accessoryTag: 0
   maxHp: 5

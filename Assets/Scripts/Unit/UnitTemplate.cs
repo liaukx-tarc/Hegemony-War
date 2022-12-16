@@ -1,4 +1,3 @@
-
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,11 +20,6 @@ public class UnitTemplate: MonoBehaviour
     public TextMeshProUGUI maintanceCostText;
     public TextMeshProUGUI produceCostText;
 
-    public Color infantryColor;
-    public Color vechicleColor;
-    public Color aircarftColor;
-    public Color shipColor;
-
     public void CreateTemplate(UnitProperty property, TagController.UnitFunction runTimeFunction)
     {
         this.property = property;
@@ -34,20 +28,16 @@ public class UnitTemplate: MonoBehaviour
         unitNameText.text = property.unitName;
         switch (property.transportProperty.transportType)
         {
-            case TransportType.Infantry:
-                iconBackground.color = infantryColor;
-                break;
-
             case TransportType.Vechicle:
-                iconBackground.color = vechicleColor;
+                iconBackground.color = WorldController.UI.vechicleColor;
                 break;
 
             case TransportType.Aircarft:
-                iconBackground.color = aircarftColor;
+                iconBackground.color = WorldController.UI.aircarftColor;
                 break;
 
             case TransportType.Ship:
-                iconBackground.color = shipColor;
+                iconBackground.color = WorldController.UI.shipColor;
                 break;
         }
 

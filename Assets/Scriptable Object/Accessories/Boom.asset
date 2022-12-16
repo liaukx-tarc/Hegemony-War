@@ -15,7 +15,7 @@ MonoBehaviour:
   accessoryName: Boom
   icon: {fileID: 21300000, guid: 9ef7f30385463f148971e6e3e47a92f7, type: 3}
   model: {fileID: 0}
-  transportType: 02000000
+  transportType: 01000000
   accessoryTypes: 0200000001000000
   accessoryTag: 0
   maxHp: 0

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum BuildingType
@@ -32,6 +30,7 @@ public class BuildingProperty : ScriptableObject
 
     [Header("Property")]
     public int buildingRange;
+    public int produceCost;
     public int maintenanceCost;
     public int healthPoint;
     public int defense;

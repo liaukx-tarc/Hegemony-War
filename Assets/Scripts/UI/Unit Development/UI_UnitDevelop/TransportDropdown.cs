@@ -1,7 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using static System.Net.Mime.MediaTypeNames;
 
 public class TransportDropdown : MonoBehaviour
 {
@@ -9,7 +7,6 @@ public class TransportDropdown : MonoBehaviour
     public TextMeshProUGUI text;
 
     [Header("Transport List")]
-    public TransportProperty[] infantryTransports;
     public TransportProperty[] vechicleTransports;
     public TransportProperty[] aircarftTransports;
     public TransportProperty[] shipTransports;
@@ -44,10 +41,6 @@ public class TransportDropdown : MonoBehaviour
 
         switch (transportType)
         {
-            case TransportType.Infantry:
-                GenerateDropdownList(infantryTransports);
-                break;
-
             case TransportType.Vechicle:
                 GenerateDropdownList(vechicleTransports);
                 break;

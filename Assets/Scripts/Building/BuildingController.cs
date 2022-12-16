@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class BuildingController : MonoBehaviour
@@ -8,10 +6,6 @@ public class BuildingController : MonoBehaviour
     public GameObject cityPrefab;
     public GameObject areaPrefab;
     int inRangeCellNum;
-
-    const string PlusOne = "+1";
-    const string PlusTwo = "+2";
-    const string PlusThree = "+3";
 
     [Header("Icon")]
     public Sprite moneyIcon;
@@ -27,16 +21,9 @@ public class BuildingController : MonoBehaviour
     public Color sciencePointColor;
     public Color developmentPointColor;
 
-    [Header("Resource")]
-    int moneyIncome;
-    int foodIncome;
-    int productivityIncome;
-    int sciencePointIncome;
-    int developmentPointIncome;
-    int maintenanceCost;
-
-    GameObject modelObject;
-    BuildingProperty selectingBuilding;
+    public GameObject modelObject;
+    public BuildingProperty selectingBuilding;
+    public BuildingProperty cityProperty;
 
     public void StartBuilding(BuildingProperty building)
     {
@@ -55,46 +42,35 @@ public class BuildingController : MonoBehaviour
         DisableBlueCells();
     }
 
-    public void BuildCity(MapCell belongCell)
+    public void BuildCity(Player player, GameObject cityModel, MapCell belongCell)
     {
         GameObject tempObj = Instantiate(cityPrefab, belongCell.transform.position, Quaternion.identity, belongCell.transform);
-        modelObject.transform.parent = tempObj.transform;
+        cityModel.transform.parent = tempObj.transform;
+        cityModel.transform.localPosition = new Vector3(0, cityModel.transform.localPosition.y, 0);
+        cityModel.SetActive(true);
 
         City city = tempObj.GetComponent<City>();
         belongCell.belongCity = city;
         belongCell.building = city;
         belongCell.mapObjectList.Add(city);
-        city.CreateBuilding(modelObject.GetComponent<Renderer>(), modelObject.GetComponent<Collider>(), selectingBuilding, belongCell);
 
-        city.player = WorldController.currentPlayer;
-        foreach(MapCell cell in cellsInRange)
+        city.player = player;
+
+        cellsInRange = belongCell.CheckCellInRange(cityProperty.buildingRange);
+
+        foreach (MapCell cell in cellsInRange)
         {
             cell.belongCity = city;
             city.controlledCellList.Add(cell);
         }
 
-        city.moneyIncome += moneyIncome;
-        city.foodIncome += foodIncome;
-        city.productivityIncome += productivityIncome;
-        city.sciencePointIncome += sciencePointIncome;
-        city.developmentPointIncome += developmentPointIncome;
-
         WorldController.currentPlayer.cityList.Add(city);
-        WorldController.currentPlayer.UpdateResource();
-
-        DisableBlueCells();
-        modelObject = null;
+        city.CreateBuilding(cityModel.GetComponent<Renderer>(), cityModel.GetComponent<Collider>(), cityProperty, belongCell);
     }
 
-    public void BuildArea(City belongCity, MapCell belongCell)
+    public void BuildArea(BuildingProperty areaProperty, GameObject areaModel, City belongCity, MapCell belongCell)
     {
-        belongCity.moneyIncome += moneyIncome -= maintenanceCost;
-        belongCity.foodIncome += foodIncome;
-        belongCity.productivityIncome += productivityIncome;
-        belongCity.sciencePointIncome += sciencePointIncome;
-        belongCity.developmentPointIncome += developmentPointIncome;
-
-        switch (selectingBuilding.buildingType)
+        switch (areaProperty.buildingType)
         {
             case BuildingType.MilitaryBase:
                 belongCity.isProduceGround = true;
@@ -122,33 +98,26 @@ public class BuildingController : MonoBehaviour
         }
 
         GameObject tempObj = Instantiate(areaPrefab, belongCell.transform.position, Quaternion.identity, belongCell.transform);
-        modelObject.transform.parent = tempObj.transform;
-        
+        areaModel.transform.parent = tempObj.transform;
+        areaModel.transform.localPosition = new Vector3(0, areaModel.transform.localPosition.y, 0);
+        areaModel.SetActive(true);
+
         Area area = tempObj.GetComponent<Area>();
         belongCell.building = area;
         belongCell.mapObjectList.Add(area);
-        belongCell.building.CreateBuilding(modelObject.GetComponent<Renderer>(), modelObject.GetComponent<Collider>(), selectingBuilding, belongCell, belongCity);
+        belongCell.building.CreateBuilding(areaModel.GetComponent<Renderer>(), areaModel.GetComponent<Collider>(), areaProperty, belongCell, belongCity);
 
         belongCity.areaList.Add(area);
-        WorldController.currentPlayer.UpdateResource();
-        UI_Controller.buildingUIController.UpdateBuildingList();
-
-        DisableBlueCells();
-        modelObject = null;
     }
 
     public List<MapCell> cellsInRange;
+    int cellResourceAmount;
+    Sprite resourceIcon;
+    Color resourceColor;
 
     public bool CityBuildCheck(MapCell belongCell)
     {
         cellsInRange = belongCell.CheckCellInRange(selectingBuilding.buildingRange);
-
-        moneyIncome = 0;
-        foodIncome = 0;
-        productivityIncome = 0;
-        sciencePointIncome = 0;
-        developmentPointIncome = 0;
-        maintenanceCost = selectingBuilding.maintenanceCost;
 
         inRangeCellNum = cellsInRange.Count;
 
@@ -160,34 +129,47 @@ public class BuildingController : MonoBehaviour
 
         for (int i = 0; i < cellsInRange.Count; i++)
         {
+            cellResourceAmount = 0;
+
             if (cellsInRange[i].mapType == (int)MapTypeName.Marsh)
             {
-                foodIncome += 3;
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusThree, foodIcon, foodColor);
+                cellResourceAmount += 3;
+                resourceIcon = foodIcon;
+                resourceColor = foodColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Plain || cellsInRange[i].mapType == (int)MapTypeName.Coast)
             {
-                foodIncome += 2;
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, foodIcon, foodColor);
+                cellResourceAmount += 2;
+                resourceIcon = foodIcon;
+                resourceColor = foodColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Snow)
             {
-                foodIncome += 1;
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusOne, foodIcon, foodColor);
+                cellResourceAmount += 1;
+                resourceIcon = foodIcon;
+                resourceColor = foodColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
             {
-                moneyIncome += 2;
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, moneyIcon, moneyColor);
+                cellResourceAmount += 2;
+                resourceIcon = moneyIcon;
+                resourceColor = moneyColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Forest)
+            { 
+                cellResourceAmount += 2;
+                resourceIcon = productivityIcon;
+                resourceColor = productivityColor;
+            }
+
+
+            if(cellResourceAmount > 0)
             {
-                productivityIncome += 2;
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, productivityIcon, productivityColor);
+                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], cellResourceAmount.ToString(), resourceIcon, resourceColor);
             }
 
             else
@@ -208,325 +190,244 @@ public class BuildingController : MonoBehaviour
     {
         cellsInRange = belongCell.CheckCellInRange(selectingBuilding.buildingRange);
 
-        moneyIncome = 0;
-        foodIncome = 0;
-        productivityIncome = 0;
-        sciencePointIncome = 0;
-        developmentPointIncome = 0;
-        maintenanceCost = selectingBuilding.maintenanceCost;
-
         inRangeCellNum = cellsInRange.Count;
 
         if (belongCell.belongCity != belongCity)
             return false;
 
+        //Map Cell Checking
+        switch (selectingBuilding.buildingType)
+        {
+            case BuildingType.Harbor:
+
+            case BuildingType.NavalBase:
+
+            case BuildingType.NavalShipyard:
+                if (belongCell.mapType != (int)MapTypeName.Ocean && belongCell.mapType != (int)MapTypeName.Coast)
+                    return false;
+                break;
+
+            default:
+                if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
+                    return false;
+                break;
+        }
+
         for (int i = 0; i < cellsInRange.Count; i++)
         {
+            cellResourceAmount = 0;
+
             switch (selectingBuilding.buildingType)
             {
                 case BuildingType.AgriculturalArea:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    foodIncome += selectingBuilding.food;
+                    if (cellsInRange[i].building != null && 
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AgriculturalArea)
+                    {
+                        cellResourceAmount += 5;
+                    }
 
                     if (cellsInRange[i].mapType == (int)MapTypeName.Marsh)
                     {
-                        foodIncome += 3;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusThree, foodIcon, foodColor);
+                        cellResourceAmount += 3;
                     }
 
                     else if (cellsInRange[i].mapType == (int)MapTypeName.Plain || cellsInRange[i].mapType == (int)MapTypeName.Coast)
                     {
-                        foodIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, foodIcon, foodColor);
+                        cellResourceAmount += 2;
                     }
 
                     else if (cellsInRange[i].mapType == (int)MapTypeName.Snow)
                     {
-                        foodIncome += 1;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusOne, foodIcon, foodColor);
+                        cellResourceAmount += 1;
                     }
 
-                    else
-                    {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
-                    }
-
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = foodIcon;
+                    resourceColor = foodColor;
                     break;
 
                 case BuildingType.ResearchCenter:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    sciencePointIncome += selectingBuilding.sciencePoint;
-
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
-                    {
-                        sciencePointIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, sciencePointIcon, sciencePointColor);
+                    if (cellsInRange[i].building != null && 
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.ResearchCenter)
+                    { 
+                        cellResourceAmount += 5;
                     }
 
-                    else
-                    {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
-                    }
-
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = sciencePointIcon;
+                    resourceColor = sciencePointColor;
                     break;
 
                 case BuildingType.IndustrialArea:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    productivityIncome += selectingBuilding.productivity;
+                    if (cellsInRange[i].building != null && 
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.IndustrialArea)
+                    {
+                        cellResourceAmount += 5;
+                    }
 
                     if (cellsInRange[i].mapType == (int)MapTypeName.Forest)
                     {
-                        productivityIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, productivityIcon, productivityColor);
+                        cellResourceAmount += 2;
                     }
 
-                    else
-                    {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
-                    }
-
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = productivityIcon;
+                    resourceColor = productivityColor;
                     break;
 
                 case BuildingType.CommercialCenter:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    moneyIncome += selectingBuilding.money;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
                     {
-                        moneyIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, moneyIcon, moneyColor);
+                        cellResourceAmount += 5;
                     }
 
-                    else
+                    if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
                     {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                        cellResourceAmount += 2;
                     }
 
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = moneyIcon;
+                    resourceColor = moneyColor;
                     break;
 
                 case BuildingType.Harbor:
-                    //Map Cell Checking
-                    if (belongCell.mapType != (int)MapTypeName.Ocean && belongCell.mapType != (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    moneyIncome += selectingBuilding.money;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
                     {
-                        moneyIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, moneyIcon, moneyColor);
+                        cellResourceAmount += 5;
                     }
 
-                    else
+                    if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
                     {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                        cellResourceAmount += 2;
                     }
 
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = moneyIcon;
+                    resourceColor = moneyColor;
                     break;
 
                 case BuildingType.Airport:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    moneyIncome += selectingBuilding.money;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
                     {
-                        moneyIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, moneyIcon, moneyColor);
+                        cellResourceAmount += 10;
                     }
 
-                    else
-                    {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
-                    }
-
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = moneyIcon;
+                    resourceColor = moneyColor;
                     break;
 
                 case BuildingType.MilitaryBase:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    productivityIncome += selectingBuilding.productivity;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
                     {
-                        productivityIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, productivityIcon, productivityColor);
+                        cellResourceAmount += 5;
                     }
 
-                    else
+                    if (cellsInRange[i].mapType == (int)MapTypeName.Plain)
                     {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                        cellResourceAmount += 2;
                     }
 
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = productivityIcon;
+                    resourceColor = productivityColor;
                     break;
 
                 case BuildingType.NavalBase:
-                    //Map Cell Checking
-                    if (belongCell.mapType != (int)MapTypeName.Ocean && belongCell.mapType != (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    productivityIncome += selectingBuilding.productivity;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
                     {
-                        productivityIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, productivityIcon, productivityColor);
+                        cellResourceAmount += 5;
                     }
 
-                    else
+                    if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
                     {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                        cellResourceAmount += 2;
                     }
 
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+
+                    resourceIcon = productivityIcon;
+                    resourceColor = productivityColor;
                     break;
 
                 case BuildingType.AirForceBase:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    productivityIncome += selectingBuilding.productivity;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
                     {
-                        productivityIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, productivityIcon, productivityColor);
+                        cellResourceAmount += 10;
                     }
 
-                    else
-                    {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
-                    }
-
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = productivityIcon;
+                    resourceColor = productivityColor;
                     break;
 
                 case BuildingType.MilitaryFactory:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    developmentPointIncome += selectingBuilding.developmentPoint;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
                     {
-                        developmentPointIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, developmentPointIcon, developmentPointColor);
+                        cellResourceAmount += 5;
                     }
 
-                    else
+                    if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
                     {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                        cellResourceAmount += 2;
                     }
 
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = developmentPointIcon;
+                    resourceColor = developmentPointColor;
                     break;
 
                 case BuildingType.NavalShipyard:
-                    //Map Cell Checking
-                    if (belongCell.mapType != (int)MapTypeName.Ocean && belongCell.mapType != (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    developmentPointIncome += selectingBuilding.developmentPoint;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
                     {
-                        developmentPointIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, developmentPointIcon, developmentPointColor);
+                        cellResourceAmount += 5;
                     }
 
-                    else
+                    if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
                     {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                        cellResourceAmount += 2;
                     }
 
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = developmentPointIcon;
+                    resourceColor = developmentPointColor;
                     break;
 
                 case BuildingType.FlightTestCenter:
-                    //Map Cell Checking
-                    if (belongCell.mapType == (int)MapTypeName.Ocean || belongCell.mapType == (int)MapTypeName.Coast)
-                        return false;
-
-                    //Calculate Resource Income
-                    developmentPointIncome += selectingBuilding.developmentPoint;
-
                     if (cellsInRange[i].building != null &&
-                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
+                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
+                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
                     {
-                        developmentPointIncome += 2;
-                        ActiveResourceText(WorldController.playerController.blueSelectCellList[i], PlusTwo, developmentPointIcon, developmentPointColor);
+                        cellResourceAmount += 10;
                     }
 
-                    else
-                    {
-                        WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
-                    }
-
-                    WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+                    resourceIcon = developmentPointIcon;
+                    resourceColor = developmentPointColor;
                     break;
             }
+
+            if (cellResourceAmount > 0)
+                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], cellResourceAmount.ToString(), resourceIcon, resourceColor);
+
+            else
+                WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+
+            WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
         }
 
         //Move Model
@@ -537,6 +438,8 @@ public class BuildingController : MonoBehaviour
 
     void ActiveResourceText(SelectionCell selectionCell, string resourceAmount, Sprite resourceIcon, Color color)
     {
+        selectionCell.turnUI.SetActive(false);
+
         selectionCell.resourceText.text = resourceAmount;
         selectionCell.resourceIcon.sprite = resourceIcon;
         selectionCell.resourceIcon.color = color;

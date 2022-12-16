@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -161,7 +158,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
     //Open UI
     public ProjectType projectType;
     public UnitTemplate originalTemplate;
-    public Building building;
+    public City city;
 
     public GameObject accessoriesPanel;
     public TextMeshProUGUI createBtnText;
@@ -176,9 +173,10 @@ public class UI_AccessoriesEquip : MonoBehaviour
     public static bool accessorySlotState = true;
 
 
-    public void UIOpen(ProjectType projectType, TransportType transportType, UnitTemplate originalTemplate)
+    public void UIOpen(City city, ProjectType projectType, TransportType transportType, UnitTemplate originalTemplate)
     {
         this.projectType = projectType;
+        this.city = city;
 
         switch (projectType)
         {
@@ -693,31 +691,33 @@ public class UI_AccessoriesEquip : MonoBehaviour
         GameObject tempProject = Instantiate(projectPrefab, projectList);
         projectName = unitName + " Project";
 
+        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        {
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+            humanPlayer.projectList.Add(tempProject);
+        }
+
         switch (projectType)
         {
             case ProjectType.UnitDevelopment:
-                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitProperty, runtimeFunction);
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitProperty, runtimeFunction);
                 WorldController.currentPlayer.projectCount++;
                 break;
 
             case ProjectType.UnitModify:
-                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction); //same Function
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction);
                 WorldController.currentPlayer.projectCount++;
                 break;
 
             case ProjectType.UnitUpgrade:
-                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, building, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction); //same Function
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction);
                 break;
 
             default:
                 break;
         }
 
-        if(WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
-        {
-            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
-            humanPlayer.projectList.Add(tempProject);
-        }
+        WorldController.UI.CloseAllUI();
     }
 
     public string unitName;

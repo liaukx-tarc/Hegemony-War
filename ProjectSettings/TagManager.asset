@@ -9,6 +9,7 @@ TagManager:
   - UI
   - PlayerController
   - BuildingController
+  - UnitController
   layers:
   - Default
   - TransparentFX

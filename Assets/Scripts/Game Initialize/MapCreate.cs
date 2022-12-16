@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 public class MapCreate : MonoBehaviour
 {
@@ -11,13 +9,13 @@ public class MapCreate : MonoBehaviour
     public int width, height;
 
     //Terrain Cost
-    public int plainCost = 0;
-    public int desertCost = 0;
-    public int snowCost = 0;
-    public int coastCost = 0;
-    public int oceanCost = 0;
-    public int forestCost = 0;
-    public int marshCost = 0;
+    public float plainCost = 0;
+    public float desertCost = 0;
+    public float snowCost = 0;
+    public float coastCost = 0;
+    public float oceanCost = 0;
+    public float forestCost = 0;
+    public float marshCost = 0;
 
     public void GenerateWorld()
     {

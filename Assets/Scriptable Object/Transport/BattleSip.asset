@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: BattleSip
   m_EditorClassIdentifier: 
   transportName: Battle Ship
-  model: {fileID: 0}
-  transportType: 3
-  lightWeaponNum: 2
-  mediumWeaponNum: 2
+  model: {fileID: 2951739783136704349, guid: 652790d20c30cdf4fad3fd9458d16fc0, type: 3}
+  transportType: 2
   heavyWeaponNum: 2
+  mediumWeaponNum: 2
+  lightWeaponNum: 2
   defenceEquipmentNum: 2
   auxiliaryEquipmentNum: 3
   maxHp: 20
@@ -27,4 +27,4 @@ MonoBehaviour:
   budgetCost: 10
   developCost: 500
   maintanceCost: 30
-  produceCost: 500
+  produceCost: 1000

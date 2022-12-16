@@ -112,15 +112,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   position: {x: 0, y: 0}
-  building: {fileID: 0}
   neighborCell: []
   mapType: 2
   cost: 0
+  belongCity: {fileID: 0}
   connectGroup: 0
   connectGroupCoast: 0
   connectGroupSea: 0
-  color: {r: 0.2, g: 0.6, b: 1, a: 0}
-  units: []
+  groundUnit: {fileID: 0}
+  navalUnit: {fileID: 0}
+  airForceUnit: {fileID: 0}
+  building: {fileID: 0}
+  mapObjectList: []
   q: 0
   r: 0
   s: 0

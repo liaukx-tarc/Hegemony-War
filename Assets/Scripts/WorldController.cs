@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
+using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.UI;
-using static UnityEngine.UI.CanvasScaler;
-using static WorldController;
 
 public class WorldController : MonoBehaviour
 {
@@ -15,10 +12,10 @@ public class WorldController : MonoBehaviour
     public PlayerCreate playerCreater;
     public UnitSpawn unitSpawner;
 
-    //Player Controller
+    //Controller
     static public PlayerController playerController;
-
     static public BuildingController buildingController;
+    static public UnitController unitController;
 
     //Player
     static public List<Player> playerList = new List<Player>();
@@ -36,7 +33,8 @@ public class WorldController : MonoBehaviour
 
     //Unit List
     static public List<Unit> activeUnitList = new List<Unit>();
-    public List<Unit> movingUnitList = new List<Unit>();
+    static public List<Unit> movingUnitList = new List<Unit>();
+
 
     public CameraControl cameraScirpt;
 
@@ -51,6 +49,7 @@ public class WorldController : MonoBehaviour
         UI = GameObject.FindGameObjectWithTag("UI").GetComponent<UI_Controller>();
         playerController = GameObject.FindGameObjectWithTag("PlayerController").GetComponent<PlayerController>();
         buildingController = GameObject.FindGameObjectWithTag("BuildingController").GetComponent<BuildingController>();
+        unitController = GameObject.FindGameObjectWithTag("UnitController").GetComponent<UnitController>();
         nextTurnFunction += turnButton.ChangeTurnText;
         playerStartFunction += CalcukateResource;
         InitializeWorld();
@@ -120,6 +119,7 @@ public class WorldController : MonoBehaviour
     public delegate void PlayerEndFunction();
     public static PlayerEndFunction playerEndFunction;
     public static bool autoUnitArrive = false;
+    public static Unit arriveUnit;
 
     IEnumerator PlayerEnd()
     {
@@ -136,7 +136,9 @@ public class WorldController : MonoBehaviour
 
         if (autoUnitArrive)
         {
+            Debug.Log("Arrive");
             autoUnitArrive = false;
+            cameraScirpt.StartCamera(arriveUnit.currentPos);
             yield break;
         }
 
@@ -170,6 +172,8 @@ public class WorldController : MonoBehaviour
         }
 
         currentPlayer = playerList[nextPlayerIndex];
+
+        currentPlayer.UpdateResource();
         playerStartFunction += currentPlayer.playerStartFunction;
         playerEndFunction += currentPlayer.playerEndFunction;
 
@@ -183,9 +187,12 @@ public class WorldController : MonoBehaviour
             unit.remainMove = unit.property.speed; //reset unit remain speed
             unit.isAction = false;
 
-            if (unit.isAutoMove)
+            if (unit.isSleep)
+                unit.isAction = true;
+
+            else if (unit.isAutoMove)
                 movingUnitList.Add(unit);
-                
+
             else
                 activeUnitList.Add(unit);
         }
@@ -231,25 +238,31 @@ public class WorldController : MonoBehaviour
         else
         {
             Debug.Log("Turn End Button Down");
+            foreach (Unit unit in currentPlayer.unitList)
+            {
+                if(!unit.isAction)
+                {
+                    cameraScirpt.MoveCamera(movingUnitList[0].currentPos);
+                    UI.CloseAllUI();
+                    PlayerController.selectedUnit = null;
+                    break;
+                }
+            }
+
             foreach (Unit unit in movingUnitList)
             {
                 unit.startMove = true;
             }
 
-            if(movingUnitList.Count > 0)
-            {
-                cameraScirpt.MoveCamera(movingUnitList[0].currentPos);
-            }
-
+            StopAllCoroutines();
             StartCoroutine(PlayerEnd());
         }
     }
 
     public void NextUnit()
     {
-        playerController.NextUnit(activeUnitList);
-
-        cameraScirpt.MoveCamera(PlayerController.selectedUnit.currentPos);
+        if (playerController.NextUnit(activeUnitList))
+            cameraScirpt.MoveCamera(PlayerController.selectedUnit.currentPos);
     }
 
     public GameObject changePlayerScene;

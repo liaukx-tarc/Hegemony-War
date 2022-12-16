@@ -15,7 +15,7 @@ MonoBehaviour:
   accessoryName: M4
   icon: {fileID: 21300000, guid: 9ef7f30385463f148971e6e3e47a92f7, type: 3}
   model: {fileID: 0}
-  transportType: 0100000003000000
+  transportType: 00000000
   accessoryTypes: 02000000
   accessoryTag: 4
   maxHp: 2

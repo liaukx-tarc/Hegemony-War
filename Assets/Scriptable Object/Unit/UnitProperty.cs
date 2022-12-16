@@ -1,4 +1,3 @@
-using System.Globalization;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "UnitProperty", menuName = "ScriptableObject/UnitProperty")]
@@ -7,6 +6,7 @@ public class UnitProperty : ScriptableObject
     [Header("Info")]
     public string unitName;
     public Sprite unitIcon;
+    public bool isSettler;
 
     [Header("Property")]
     public int maxHp = 0;
