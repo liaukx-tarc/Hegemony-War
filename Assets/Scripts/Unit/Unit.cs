@@ -12,6 +12,7 @@ public class Unit : MapObject
     public TagController.UnitFunction runtimeFunction;
 
     //Unit state
+    [Header("State")]
     public int currentHp;
     public int damage;
     public float remainMove;
@@ -21,9 +22,11 @@ public class Unit : MapObject
     public MapCell currentPos;
 
     //Moving
+    [Header("Moving")]
     public bool isMoving = false;
     public bool isAutoMove = false;
     public bool startMove = false;
+    public bool isNoCost = false;
     public MapCell targetPos;
     public int moveFrame;
     int moveCount = 0;
@@ -31,7 +34,7 @@ public class Unit : MapObject
     Vector3 moveDistance;
 
     //Building
-    public GameObject buildingObj;
+    [Header("Building")]
     public bool isBuilding = false;
     public GameObject cityModel;
 
@@ -40,6 +43,22 @@ public class Unit : MapObject
         currentHp = property.maxHp;
         damage = property.damage;
         remainMove = property.speed;
+
+        switch (property.transportProperty.transportType)
+        {
+            case TransportType.Vechicle:
+                AStar_PathFinding = Ground_AStar_PathFinding;
+                break;
+
+            case TransportType.Aircarft:
+                AStar_PathFinding = NotCost_AStar_PathFinding;
+                isNoCost = true;
+                break;
+
+            case TransportType.Ship:
+                AStar_PathFinding = Sea_AStar_PathFinding;
+                break;
+        }
     }
 
     private void Update()
@@ -48,7 +67,14 @@ public class Unit : MapObject
         {
             if (path.Count > 0)
             {
-                if (remainMove >= path[0].cost)
+                float cost;
+                
+                if (isNoCost)
+                    cost = 1;
+                else
+                    cost = path[0].cost;
+
+                if (remainMove >= cost)
                 {
                     currentPath = path[0];
                     moveDistance = currentPath.transform.position - currentPos.transform.position;
@@ -135,10 +161,22 @@ public class Unit : MapObject
 
                 else if (path.Count > 0)
                 {
-                    if (remainMove >= path[0].cost)
+                    float cost;
+
+                    if (isNoCost)
+                        cost = 1;
+                    else
+                        cost = path[0].cost;
+
+                    if (remainMove >= cost)
                     {
                         currentPath = path[0];
-                        remainMove -= currentPath.cost;
+
+                        if (isNoCost)
+                            remainMove -= 1;
+                        else
+                            remainMove -= currentPath.cost;
+
                         moveDistance = currentPath.transform.position - currentPos.transform.position;
                         this.transform.LookAt(new Vector3(currentPath.transform.position.x, this.transform.position.y, currentPath.transform.position.z));
 
@@ -164,12 +202,14 @@ public class Unit : MapObject
     }
 
     //pathFinding
+    [Header("Path Finding")]
     public bool endSearch;
     public bool showPath;
     public int turnSeachCount;
-    public int maxSeachCount;
     public List<MapCell> path = new List<MapCell>();
     public List<MapCell> eachTurnStartCell = new List<MapCell>();
+    public delegate IEnumerator AStar(MapCell targetCell);
+    public AStar AStar_PathFinding;
 
     public void CheckPath(MapCell targetPos)
     {
@@ -179,7 +219,7 @@ public class Unit : MapObject
         StartCoroutine(AStar_PathFinding(targetPos));
     }
 
-    IEnumerator AStar_PathFinding(MapCell targetPos)
+    IEnumerator Ground_AStar_PathFinding(MapCell targetPos)
     {
         endSearch = false;
         showPath = false;
@@ -199,19 +239,11 @@ public class Unit : MapObject
         bool inClose;
         int seachcount = 0;
 
-        if(startNode.mapCell.connectGroupCoast == targetPos.connectGroupCoast)
+        if (startNode.mapCell.groundConnect == targetPos.groundConnect)
         {
             do
             {
-                if (seachcount >= maxSeachCount)
-                {
-                    isBuilding = false;
-                    startMove = false;
-                    endSearch = true;
-                    yield break;
-                }
-
-                else if (seachcount % turnSeachCount == 0)
+                if (seachcount % turnSeachCount == 0)
                 {
                     yield return null;
                 }
@@ -221,7 +253,8 @@ public class Unit : MapObject
                     currentNode = openList[0];
                     for (int i = 0; i < openList.Count; i++)
                     {
-                        if (openList[i].fCost < currentNode.fCost || (openList[i].fCost == currentNode.fCost && openList[i].gCost > currentNode.gCost))
+                        if (openList[i].fCost < currentNode.fCost ||
+                            (openList[i].fCost == currentNode.fCost && openList[i].gCost > currentNode.gCost))
                         {
                             currentNode = openList[i];
                         }
@@ -240,7 +273,7 @@ public class Unit : MapObject
                             path.Add(temp.mapCell);
                             temp = temp.parent;
                         }
-                        
+
                         path.Add(temp.mapCell);
                         path.Reverse();
 
@@ -256,7 +289,7 @@ public class Unit : MapObject
 
                             tempRemainMove -= cell.cost;
                             if (tempRemainMove < 0)
-                            { 
+                            {
                                 eachTurnStartCell.Add(cell);
                                 tempRemainMove = property.speed;
                             }
@@ -275,7 +308,7 @@ public class Unit : MapObject
                         {
                             neighbourNode = new Node(currentNode.mapCell.neighborCell[i]);
 
-                            if (neighbourNode.mapCell.cost != 0)//cant move
+                            if (neighbourNode.mapCell.mapType != (int)MapTypeName.Ocean)
                             {
                                 foreach (Node node in closeList)
                                 {
@@ -322,12 +355,285 @@ public class Unit : MapObject
 
         else
         {
-            Debug.Log("Can't Move");
             isBuilding = false;
             startMove = false;
             endSearch = true;
             yield break;
         }
+    }
+
+    IEnumerator Sea_AStar_PathFinding(MapCell targetPos)
+    {
+        endSearch = false;
+        showPath = false;
+
+        Node startNode = new Node(currentPos);
+        startNode.gCost = 0;
+        startNode.hCost = startNode.mapCell.cubePosition.CheckDistance(targetPos.cubePosition);
+        startNode.fCost = startNode.gCost + startNode.hCost;
+
+        List<Node> openList = new List<Node>();
+        List<Node> closeList = new List<Node>();
+        openList.Add(startNode);
+
+        Node currentNode;
+        Node neighbourNode;
+        bool haveSame;
+        bool inClose;
+        int seachcount = 0;
+
+        if (startNode.mapCell.seaConnect == targetPos.seaConnect)
+        {
+            do
+            {
+                if (seachcount % turnSeachCount == 0)
+                {
+                    yield return null;
+                }
+
+                else
+                {
+                    currentNode = openList[0];
+                    for (int i = 0; i < openList.Count; i++)
+                    {
+                        if (openList[i].fCost < currentNode.fCost || (openList[i].fCost == currentNode.fCost && openList[i].gCost > currentNode.gCost))
+                        {
+                            currentNode = openList[i];
+                        }
+
+                    }
+
+                    openList.Remove(currentNode);
+                    closeList.Add(currentNode);
+
+                    if (currentNode.mapCell == targetPos)
+                    {
+                        Node temp = currentNode;
+
+                        while (temp.parent != null)
+                        {
+                            path.Add(temp.mapCell);
+                            temp = temp.parent;
+                        }
+
+                        path.Add(temp.mapCell);
+                        path.Reverse();
+
+                        //Calculate End Cell of each turn
+                        eachTurnStartCell.Clear();
+
+                        float tempRemainMove = remainMove;
+
+                        foreach (MapCell cell in path)
+                        {
+                            if (cell == currentPos)
+                                continue;
+
+                            tempRemainMove -= cell.cost;
+                            if (tempRemainMove < 0)
+                            {
+                                eachTurnStartCell.Add(cell);
+                                tempRemainMove = property.speed;
+                            }
+                        }
+
+                        endSearch = true;
+                        yield break;
+                    }
+
+                    for (int i = 0; i < 6; i++)
+                    {
+                        haveSame = false;
+                        inClose = false;
+
+                        if (currentNode.mapCell.neighborCell[i] != null)
+                        {
+                            neighbourNode = new Node(currentNode.mapCell.neighborCell[i]);
+                            if (neighbourNode.mapCell.mapType == (int)MapTypeName.Ocean || neighbourNode.mapCell.mapType == (int)MapTypeName.Coast)
+                            {
+                                foreach (Node node in closeList)
+                                {
+                                    if (node.mapCell == neighbourNode.mapCell)
+                                    {
+                                        inClose = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!inClose)
+                                {
+                                    neighbourNode.gCost = currentNode.gCost + currentNode.mapCell.cost * 2;
+                                    neighbourNode.hCost = neighbourNode.mapCell.cubePosition.CheckDistance(targetPos.cubePosition);
+                                    neighbourNode.fCost = neighbourNode.gCost + neighbourNode.hCost;
+                                    neighbourNode.parent = currentNode;
+
+                                    foreach (Node node in openList)
+                                    {
+                                        if (node.mapCell == neighbourNode.mapCell)
+                                        {
+                                            if (node.fCost > neighbourNode.fCost)
+                                            {
+                                                openList.Remove(node);
+                                                openList.Add(neighbourNode);
+                                            }
+                                            haveSame = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!haveSame)
+                                    {
+                                        openList.Add(neighbourNode);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                seachcount++;
+            } while (openList.Count > 0);
+        }
+
+        else
+        {
+            isBuilding = false;
+            startMove = false;
+            endSearch = true;
+            yield break;
+        }
+    }
+
+    IEnumerator NotCost_AStar_PathFinding(MapCell targetPos)
+    {
+        endSearch = false;
+        showPath = false;
+
+        Node startNode = new Node(currentPos);
+        startNode.gCost = 0;
+        startNode.hCost = startNode.mapCell.cubePosition.CheckDistance(targetPos.cubePosition);
+        startNode.fCost = startNode.gCost + startNode.hCost;
+
+        List<Node> openList = new List<Node>();
+        List<Node> closeList = new List<Node>();
+        openList.Add(startNode);
+
+        Node currentNode;
+        Node neighbourNode;
+        bool haveSame;
+        bool inClose;
+        int seachcount = 0;
+
+        do
+        {
+            if (seachcount % turnSeachCount == 0)
+            {
+                yield return null;
+            }
+
+            else
+            {
+                currentNode = openList[0];
+                for (int i = 0; i < openList.Count; i++)
+                {
+                    if (openList[i].fCost < currentNode.fCost || 
+                        (openList[i].fCost == currentNode.fCost && openList[i].gCost > currentNode.gCost))
+                    {
+                        currentNode = openList[i];
+                    }
+
+                }
+
+                openList.Remove(currentNode);
+                closeList.Add(currentNode);
+
+                if (currentNode.mapCell == targetPos)
+                {
+                    Node temp = currentNode;
+
+                    while (temp.parent != null)
+                    {
+                        path.Add(temp.mapCell);
+                        temp = temp.parent;
+                    }
+
+                    path.Add(temp.mapCell);
+                    path.Reverse();
+
+                    //Calculate End Cell of each turn
+                    eachTurnStartCell.Clear();
+
+                    float tempRemainMove = remainMove;
+
+                    foreach (MapCell cell in path)
+                    {
+                        if (cell == currentPos)
+                            continue;
+
+                        tempRemainMove -= 1;//each move is 1 cost
+                        if (tempRemainMove < 0)
+                        {
+                            eachTurnStartCell.Add(cell);
+                            tempRemainMove = property.speed;
+                        }
+                    }
+
+                    endSearch = true;
+                    yield break;
+                }
+
+                for (int i = 0; i < 6; i++)
+                {
+                    haveSame = false;
+                    inClose = false;
+
+                    if (currentNode.mapCell.neighborCell[i] != null)
+                    {
+                        neighbourNode = new Node(currentNode.mapCell.neighborCell[i]);
+
+                        if (neighbourNode.mapCell.cost != 0)//cant move
+                        {
+                            foreach (Node node in closeList)
+                            {
+                                if (node.mapCell == neighbourNode.mapCell)
+                                {
+                                    inClose = true;
+                                    break;
+                                }
+                            }
+
+                            if (!inClose)
+                            {
+                                neighbourNode.gCost = currentNode.gCost + 2;
+                                neighbourNode.hCost = neighbourNode.mapCell.cubePosition.CheckDistance(targetPos.cubePosition);
+                                neighbourNode.fCost = neighbourNode.gCost + neighbourNode.hCost;
+                                neighbourNode.parent = currentNode;
+
+                                foreach (Node node in openList)
+                                {
+                                    if (node.mapCell == neighbourNode.mapCell)
+                                    {
+                                        if (node.fCost > neighbourNode.fCost)
+                                        {
+                                            openList.Remove(node);
+                                            openList.Add(neighbourNode);
+                                        }
+                                        haveSame = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!haveSame)
+                                {
+                                    openList.Add(neighbourNode);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            seachcount++;
+        } while (openList.Count > 0);
+
     }
 
     public void UnitDestroy()

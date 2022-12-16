@@ -19,12 +19,13 @@ MonoBehaviour:
   iconColor: {r: 0.18431373, g: 0.21176471, b: 0.2509804, a: 1}
   buildingType: 0
   buildingRange: 3
+  produceCost: 0
   maintenanceCost: 0
   healthPoint: 100
   defense: 10
   damage: 20
   money: 0
   food: 0
-  productivity: 0
+  productivity: 200
   sciencePoint: 0
   developmentPoint: 0

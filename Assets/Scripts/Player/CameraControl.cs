@@ -466,7 +466,6 @@ public class CameraControl : MonoBehaviour
                                     displayMap[x, y] = WorldController.map[0, (int)displayMap[x, y].position.y];
                                     if (y == halfDisplayY)
                                         culledCount++;
-                                    Debug.Log(culledCount);
                                 }
 
                                 if (!isCulled)
@@ -482,7 +481,6 @@ public class CameraControl : MonoBehaviour
 
                                         foreach (MapObject mapObject in tempCell.mapObjectList)
                                         {
-                                            Debug.Log(mapObject.name + " " + mapObject.transform.position);
                                             mapObject.transform.position = tempCell.transform.position;
 
                                             if (mapObject.GetType() == typeof(Unit))

@@ -22678,7 +22678,7 @@ PrefabInstance:
     - target: {fileID: 3335782581692548133, guid: 8ba9bed762b644c4aa36284260fa1130,
         type: 3}
       propertyPath: oceanCost
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3335782581692548133, guid: 8ba9bed762b644c4aa36284260fa1130,
         type: 3}

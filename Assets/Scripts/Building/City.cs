@@ -92,7 +92,6 @@ public class City : Building
 
     public void CheckProduce()
     {
-        Debug.Log(cityName + " Produce");
         if (producingArea == null && producingUnit == null)
             return;
 
@@ -130,11 +129,11 @@ public class City : Building
 
     public void CalculateIncome()
     {
-        moneyIncome = 0;
-        foodIncome = 0;
-        productivityIncome = 200;
-        sciencePointIncome = 0;
-        developmentPointIncome = 0;
+        moneyIncome = buildingProperty.money;
+        foodIncome = buildingProperty.food;
+        productivityIncome = buildingProperty.productivity;
+        sciencePointIncome = buildingProperty.sciencePoint;
+        developmentPointIncome = buildingProperty.developmentPoint;
 
         //City Maintence Cost
         moneyIncome -= buildingProperty.maintenanceCost;

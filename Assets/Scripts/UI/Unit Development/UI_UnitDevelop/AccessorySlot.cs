@@ -51,7 +51,6 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
         if(UI_Controller.accessoriesUI.weight + accessory.weight > UI_Controller.accessoriesUI.transportProperty.load)
         {
             StartCoroutine(redEffect());
-            Debug.Log("OverLoad");
             return false; //transport overload
         }
 

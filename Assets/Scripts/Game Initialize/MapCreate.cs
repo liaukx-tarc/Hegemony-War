@@ -449,15 +449,18 @@ public class MapCreate : MonoBehaviour
     //Use Flood Fill algorthm to check the connect of the map
     void FloodFillCheck()
     {
-        //check without sea connection
-        int connectionNum = 0;
+        //check ground connection
+        int connectionNum = 1;
         bool[,] checkedMapList = new bool[width, height];
 
         //Ignore the cell can't pass
         for (int w = 0; w < width; w++)
             for (int h = 0; h < height; h++)
-                if (WorldController.map[w, h].cost == 0 || WorldController.map[w,h].mapType == (int)MapTypeName.Ocean || WorldController.map[w, h].mapType == (int)MapTypeName.Coast)
+                if (WorldController.map[w,h].mapType == (int)MapTypeName.Ocean) //is ocean cell
+                {
+                    WorldController.map[w, h].groundConnect = 0;
                     checkedMapList[w, h] = true;
+                }         
 
         for (int w = 0; w < width; w++)
         {
@@ -470,7 +473,7 @@ public class MapCreate : MonoBehaviour
 
                     //add the cell's postion to the queue
                     queue.Enqueue(new Vector2(w, h));
-                    WorldController.map[w, h].connectGroup = connectionNum;
+                    WorldController.map[w, h].groundConnect = connectionNum;
 
                     do//do when the queue is not empty
                     {
@@ -481,9 +484,9 @@ public class MapCreate : MonoBehaviour
                         foreach (MapCell cell in WorldController.map[curW, curH].neighborCell)
                         {
                             if (cell != null && !checkedMapList[(int)cell.position.x, (int)cell.position.y] &&
-                                cell.cost != 0 && cell.mapType != (int)MapTypeName.Ocean && cell.mapType != (int)MapTypeName.Coast)
+                                cell.cost != 0 && cell.mapType != (int)MapTypeName.Ocean)
                             {
-                                cell.connectGroup = connectionNum;
+                                cell.groundConnect = connectionNum;
                                 checkedMapList[(int)cell.position.x, (int)cell.position.y] = true;
                                 queue.Enqueue(new Vector2((int)cell.position.x, (int)cell.position.y));
                             }
@@ -493,15 +496,20 @@ public class MapCreate : MonoBehaviour
             }
         }
 
-        //check with coast
-        int coastConnectionNum = 0;
+        //check sea connect
+        int seaConnectionNum = 1;
         bool[,] coastCheckedMapList = new bool[width, height];
 
         //Ignore the cell can't pass
         for (int w = 0; w < width; w++)
             for (int h = 0; h < height; h++)
-                if (WorldController.map[w, h].cost == 0 || WorldController.map[w,h].mapType == (int)MapTypeName.Ocean)
+                if (WorldController.map[w,h].mapType != (int)MapTypeName.Coast && //Not Coast cell
+                    WorldController.map[w, h].mapType != (int)MapTypeName.Ocean) //Not Ocean cell
+                {
+                    WorldController.map[w, h].seaConnect = 0;
                     coastCheckedMapList[w, h] = true;
+                }
+                    
 
         for (int w = 0; w < width; w++)
         {
@@ -509,12 +517,12 @@ public class MapCreate : MonoBehaviour
             {
                 if (!coastCheckedMapList[w, h])
                 {
-                    coastConnectionNum++;
+                    seaConnectionNum++;
                     Queue<Vector2> queue = new Queue<Vector2>();
 
                     //add the cell's postion to the queue
                     queue.Enqueue(new Vector2(w, h));
-                    WorldController.map[w, h].connectGroup = coastConnectionNum;
+                    WorldController.map[w, h].seaConnect = seaConnectionNum;
 
                     do//do when the queue is not empty
                     {
@@ -525,55 +533,10 @@ public class MapCreate : MonoBehaviour
                         foreach (MapCell cell in WorldController.map[curW, curH].neighborCell)
                         {
                             if (cell != null && !coastCheckedMapList[(int)cell.position.x, (int)cell.position.y] &&
-                                cell.cost != 0 && cell.mapType != (int)MapTypeName.Ocean)
+                                cell.cost != 0 && (cell.mapType == (int)MapTypeName.Ocean || cell.mapType == (int)MapTypeName.Coast))
                             {
-                                cell.connectGroupCoast = coastConnectionNum;
+                                cell.seaConnect = seaConnectionNum;
                                 coastCheckedMapList[(int)cell.position.x, (int)cell.position.y] = true;
-                                queue.Enqueue(new Vector2((int)cell.position.x, (int)cell.position.y));
-                            }
-                        }
-
-                    } while (queue.Count > 0);
-                }
-            }
-        }
-
-        //check with sea
-        int seaConnectionNum = 0;
-        bool[,] seaCheckedMapList = new bool[width, height];
-
-        //Ignore the cell can't pass
-        for (int w = 0; w < width; w++)
-            for (int h = 0; h < height; h++)
-                if (WorldController.map[w, h].cost == 0)
-                    seaCheckedMapList[w, h] = true;
-
-        for (int w = 0; w < width; w++)
-        {
-            for (int h = 0; h < height; h++)
-            {
-                if (!seaCheckedMapList[w, h])
-                {
-                    seaConnectionNum++;
-                    Queue<Vector2> queue = new Queue<Vector2>();
-
-                    //add the cell's postion to the queue
-                    queue.Enqueue(new Vector2(w, h));
-                    WorldController.map[w, h].connectGroup = seaConnectionNum;
-
-                    do//do when the queue is not empty
-                    {
-                        Vector2 currentCell = queue.Dequeue();
-                        int curW = (int)currentCell.x;
-                        int curH = (int)currentCell.y;
-
-                        foreach (MapCell cell in WorldController.map[curW, curH].neighborCell)
-                        {
-                            if (cell != null && !seaCheckedMapList[(int)cell.position.x, (int)cell.position.y] &&
-                                cell.cost != 0 && cell.mapType != (int)MapTypeName.Ocean)
-                            {
-                                cell.connectGroupSea = seaConnectionNum;
-                                seaCheckedMapList[(int)cell.position.x, (int)cell.position.y] = true;
                                 queue.Enqueue(new Vector2((int)cell.position.x, (int)cell.position.y));
                             }
                         }

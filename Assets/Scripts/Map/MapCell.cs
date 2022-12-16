@@ -23,9 +23,8 @@ public class MapCell : MonoBehaviour
 
     public City belongCity;
 
-    public int connectGroup;
-    public int connectGroupCoast;
-    public int connectGroupSea;
+    public int groundConnect;
+    public int seaConnect;
 
     //Unit
     public Unit groundUnit;

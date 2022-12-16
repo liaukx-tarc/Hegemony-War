@@ -45,24 +45,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rendererCpn: {fileID: 0}
-  colliderCpn: {fileID: 0}
   player: {fileID: 0}
   property: {fileID: 0}
   currentHp: 0
   damage: 0
   remainMove: 0
   isAction: 0
+  isSleep: 0
   currentPos: {fileID: 0}
   isMoving: 0
   isAutoMove: 0
   startMove: 0
+  isNoCost: 0
   targetPos: {fileID: 0}
   moveFrame: 6
-  buildingObj: {fileID: 0}
   isBuilding: 0
+  cityModel: {fileID: 0}
   endSearch: 0
   showPath: 0
-  turnSeachCount: 45
-  maxSeachCount: 3000
+  turnSeachCount: 300
   path: []
   eachTurnStartCell: []
