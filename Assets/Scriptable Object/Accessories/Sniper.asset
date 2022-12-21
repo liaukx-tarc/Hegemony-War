@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a59c0f2529ab4f43b4d7e23ec3b2232, type: 3}
   m_Name: Sniper
   m_EditorClassIdentifier: 
-  accessoryName: M4
+  accessoryName: Sniper
   icon: {fileID: 21300000, guid: 9ef7f30385463f148971e6e3e47a92f7, type: 3}
   model: {fileID: 0}
   transportType: 00000000
-  accessoryTypes: 02000000
+  accessoryTypes: 01000000
   accessoryTag: 4
   maxHp: 2
   armor: 0
-  damage: 6
-  range: 1
+  damage: 20
+  range: 2
   speed: 0
   weight: 4
   budgetCost: 1

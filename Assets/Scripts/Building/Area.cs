@@ -4,10 +4,27 @@ public class Area : Building
 {
     public City belongCity;
 
-    override public void CreateBuilding(Renderer rendererCpn, Collider colliderCpn, BuildingProperty buildingProperty, MapCell belongCell, City city)
+    public void AreaTurn()
     {
-        base.CreateBuilding(rendererCpn, colliderCpn, buildingProperty, belongCell);
+        if(belongCell.unit == null || belongCell.unit.player == player)
+        {
+            if(currentHp < maxHP)
+            {
+                currentHp += WorldController.instance.buildingController.restoreHP;
+                currentHp = Mathf.Min(currentHp, maxHP);
+                slider.value = currentHp;
 
-        belongCity = city;
+                if (currentHp == maxHP)
+                {
+                    slider.gameObject.SetActive(false);
+
+                    if(isDestroy)
+                    {
+                        isDestroy = false;
+                        belongCity.CalculateIncome();
+                    }
+                }
+            }
+        }
     }
 }

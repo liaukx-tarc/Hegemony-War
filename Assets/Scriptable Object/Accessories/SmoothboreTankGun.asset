@@ -20,7 +20,7 @@ MonoBehaviour:
   accessoryTag: 0
   maxHp: 5
   armor: 0
-  damage: 12
+  damage: 24
   range: 2
   speed: 0
   weight: 20

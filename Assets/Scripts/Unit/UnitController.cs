@@ -4,9 +4,12 @@ public class UnitController : MonoBehaviour
 {
     public GameObject unitPrefab;
 
+    [Header("Unit HP Restore")]
+    public int hpRestore;
+
     public void Start_UnitController()
     {
-
+        
     }
 
     public void GenerateUnit(Player player, UnitProperty unitProperty,MapCell generateCell)
@@ -15,7 +18,7 @@ public class UnitController : MonoBehaviour
         GameObject unitModel = Instantiate(unitProperty.transportProperty.model, unitObj.transform.position, Quaternion.identity, unitObj.transform);
         Unit unit = unitObj.GetComponent<Unit>();
 
-        unitObj.name = unitProperty.unitName;
+        unitObj.name = player + unitProperty.unitName;
         unit.currentPos = generateCell;
         unit.player = player;
 
@@ -25,21 +28,8 @@ public class UnitController : MonoBehaviour
         unit.InitializeUnit();
 
         player.unitList.Add(unit);
-
-        switch (unit.property.transportProperty.transportType)
-        {
-            case TransportType.Vechicle:
-                generateCell.groundUnit = unit;
-                break;
-
-            case TransportType.Aircarft:
-                generateCell.airForceUnit = unit;
-                break;
-
-            case TransportType.Ship:
-                generateCell.navalUnit = unit;
-                break;
-        }
+        WorldController.instance.activeUnitList.Add(unit);
+        generateCell.unit = unit;
 
         generateCell.mapObjectList.Add(unit);
     }

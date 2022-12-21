@@ -13,15 +13,15 @@ public class DevelopmentCenter_Slot : MonoBehaviour
 
     public void RemoveCity()
     {
-        if(UI_Controller.progressUI.selectedProject.developmentCenters.Count > 1)
+        if(WorldController.instance.uiController.progressUI.selectedProject.developmentCenters.Count > 1)
         {
-            UI_Controller.progressUI.selectedProject.RemoveDevelopmentCenter(city);
-            UI_Controller.progressUI.ShowProjectDetail(UI_Controller.progressUI.selectedProject);
+            WorldController.instance.uiController.progressUI.selectedProject.RemoveDevelopmentCenter(city);
+            WorldController.instance.uiController.progressUI.ShowProjectDetail(WorldController.instance.uiController.progressUI.selectedProject);
         }
         
         else
         {
-            StartCoroutine(UI_Controller.progressUI.AddCityFail());
+            StartCoroutine(WorldController.instance.uiController.progressUI.AddCityFail());
         }
     }
 }

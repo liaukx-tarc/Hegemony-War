@@ -22,7 +22,7 @@ public class UI_Building : MonoBehaviour
 
     public void BuildingUI_Start()
     {
-        UI_Controller.closeAllUIFunction += CloseBuildingUI;
+        WorldController.instance.uiController.closeAllUIFunction += CloseBuildingUI;
     }
 
     public void OpenBuildingUI(Building building)
@@ -38,12 +38,31 @@ public class UI_Building : MonoBehaviour
         projectObjImage.gameObject.SetActive(false);
 
         UpdateCityInfo();
-        UpdateTabBar();
         UpdateBuildingList();
         UpdateUnitTemplateList();
 
         tabGroup.OnTabButtonSelected(tabGroup.buttonsList[0]);
-        UpdateProduceProgress();
+
+        if (selectedCity.player == WorldController.instance.currentPlayer)
+        {
+            areaTabBar.SetActive(true);
+            unitTabBar.SetActive(true);
+            UpdateTabBar();
+            UpdateProduceProgress();
+        }
+
+        else
+        {
+            tabGroup.buttonsList[0].ui.SetActive(false);
+
+            areaTabBar.SetActive(false);
+            unitTabBar.SetActive(false);
+            groundTabBar.SetActive(false);
+            airForceTabBar.SetActive(false);
+            navalTabBar.SetActive(false);
+        }
+
+        
     }
 
     public void CloseBuildingUI()
@@ -68,9 +87,9 @@ public class UI_Building : MonoBehaviour
 
     [Header("Resource")]
     public TextMeshProUGUI moneyText;
-    public TextMeshProUGUI foodText;
+    //public TextMeshProUGUI foodText;
     public TextMeshProUGUI productivityText;
-    public TextMeshProUGUI sciencePointText;
+    //public TextMeshProUGUI sciencePointText;
     public TextMeshProUGUI developmentPointText;
 
     public void UpdateCityInfo()
@@ -78,19 +97,21 @@ public class UI_Building : MonoBehaviour
         cityName.text= selectedCity.cityName;
         cityNameBgr.color = selectedCity.player.playerColor;
 
-        healthPointText.text = selectedCity.healthPoint.ToString();
+        healthPointText.text = selectedCity.currentHp.ToString() + " / " + selectedCity.maxHP.ToString();
         defenseText.text = selectedCity.defense.ToString();
         damageText.text = selectedCity.damage.ToString();
 
         moneyText.text = selectedCity.moneyIncome.ToString();
-        foodText.text = selectedCity.foodIncome.ToString();
+        //foodText.text = selectedCity.foodIncome.ToString();
         productivityText.text = selectedCity.productivityIncome.ToString();
-        sciencePointText.text = selectedCity.sciencePointIncome.ToString();
+        //sciencePointText.text = selectedCity.sciencePointIncome.ToString();
         developmentPointText.text = selectedCity.developmentPointIncome.ToString();
     }
 
     //Tab bar
     [Header("Tab Bar")]
+    public GameObject areaTabBar;
+    public GameObject unitTabBar;
     public GameObject groundTabBar;
     public GameObject airForceTabBar;
     public GameObject navalTabBar;
@@ -122,6 +143,9 @@ public class UI_Building : MonoBehaviour
     public TextMeshProUGUI productivityCompletedText;
     public TextMeshProUGUI productivityNeedText;
     public TextMeshProUGUI produceTurnLeftText;
+
+    const string unlimitedString = "X";
+
     public void UpdateProduceProgress()
     {
         projectObjImage.gameObject.SetActive(false);
@@ -140,19 +164,20 @@ public class UI_Building : MonoBehaviour
             switch (selectedCity.producingUnit.property.transportProperty.transportType)
             {
                 case TransportType.Vechicle:
-                    produceIconBgr.color = WorldController.UI.vechicleColor;
+                    produceIconBgr.color = WorldController.instance.uiController.vechicleColor;
                     break;
 
                 case TransportType.Aircarft:
-                    produceIconBgr.color = WorldController.UI.aircarftColor;
+                    produceIconBgr.color = WorldController.instance.uiController.aircarftColor;
                     break;
 
                 case TransportType.Ship:
-                    produceIconBgr.color = WorldController.UI.shipColor;
+                    produceIconBgr.color = WorldController.instance.uiController.shipColor;
                     break;
             }
 
             produceIcon.sprite = selectedCity.producingUnit.property.unitIcon;
+            produceIcon.color = WorldController.instance.uiController.whiteColor;
             produceName.text = selectedCity.producingUnit.property.unitName;
         }
 
@@ -170,7 +195,11 @@ public class UI_Building : MonoBehaviour
         int remainTurn = (selectedCity.productivityNeed - selectedCity.productivityCompleted) / selectedCity.productivityIncome;
         if ((selectedCity.productivityNeed - selectedCity.productivityCompleted) % selectedCity.productivityIncome != 0)
             remainTurn++;
-        produceTurnLeftText.text = remainTurn.ToString();
+
+        if (!selectedCity.isDestroy)
+            produceTurnLeftText.text = remainTurn.ToString();
+        else
+            produceTurnLeftText.text = unlimitedString;
 
         StartCoroutine(UpdateUILayout());
     }
@@ -251,7 +280,7 @@ public class UI_Building : MonoBehaviour
     //Unit Template
     public void UpdateUnitTemplateList()
     {
-        unitTemplates = WorldController.currentPlayer.unitTemplateList;
+        unitTemplates = WorldController.instance.currentPlayer.unitTemplateList;
 
         groundUnitList.transform.parent.gameObject.SetActive(false);
         navalUnitList.transform.parent.gameObject.SetActive(false);
@@ -278,7 +307,7 @@ public class UI_Building : MonoBehaviour
             switch (unitTemplates[i].property.transportProperty.transportType)
             {
                 case TransportType.Vechicle:
-                    unitTemplatesSelection[i].templateBackground.color = WorldController.UI.vechicleColor;
+                    unitTemplatesSelection[i].templateBackground.color = WorldController.instance.uiController.vechicleColor;
                     unitTemplatesSelection[i].transform.SetParent(groundUnitList.transform);
                     
                     if (selectedCity.isProduceGround)
@@ -286,7 +315,7 @@ public class UI_Building : MonoBehaviour
                     break;
 
                 case TransportType.Aircarft:
-                    unitTemplatesSelection[i].templateBackground.color = WorldController.UI.aircarftColor;
+                    unitTemplatesSelection[i].templateBackground.color = WorldController.instance.uiController.aircarftColor;
                     unitTemplatesSelection[i].transform.SetParent(airForceUnitList.transform);
                     
                     if (selectedCity.isProduceAirForce)
@@ -294,7 +323,7 @@ public class UI_Building : MonoBehaviour
                     break;
 
                 case TransportType.Ship:
-                    unitTemplatesSelection[i].templateBackground.color = WorldController.UI.shipColor;
+                    unitTemplatesSelection[i].templateBackground.color = WorldController.instance.uiController.shipColor;
                     unitTemplatesSelection[i].transform.SetParent(navalUnitList.transform);
                     
                     if (selectedCity.isProduceNaval)

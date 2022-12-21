@@ -52,6 +52,8 @@ public class UnitDevelopmentProject : MonoBehaviour
     public int developmentPoint = 0;
     public List<City> developmentCenters = new List<City>();
 
+    const string unlimitedString = "X";
+
     public void ProjectCreate(Player player, City developmentCenter, ProjectType projectType, string projectName, int projectBudget, int developCost, UnitTemplate originalTemplate, UnitProperty unitProperty, TagController.UnitFunction runtimeFunction)
     {
         switch (projectType)
@@ -87,7 +89,18 @@ public class UnitDevelopmentProject : MonoBehaviour
         this.originalTemplate = originalTemplate;
 
         nameText.text = projectName;
-        turnText.text = CalculateRemainTurn().ToString();
+
+        int remainTurn = CalculateRemainTurn();
+        
+        if(remainTurn > 0)
+        {
+            turnText.text = remainTurn.ToString();
+        }
+        else
+        {
+            turnText.text = unlimitedString;
+        }
+        
         progressBar.minValue = 0;
         progressBar.maxValue = developCost;
         progressBar.value = 0;
@@ -95,16 +108,21 @@ public class UnitDevelopmentProject : MonoBehaviour
         this.unitProperty = unitProperty;
         this.runtimeFunction = runtimeFunction;
 
-        WorldController.currentPlayer.playerStartFunction += ProjectCompleteCheck;
-        WorldController.playerStartFunction += ProjectCompleteCheck;
+        WorldController.instance.currentPlayer.playerStartFunction += ProjectCompleteCheck;
+        WorldController.instance.playerStartFunction += ProjectCompleteCheck;
     }
 
     public int CalculateRemainTurn()
     {
-        int remainTurn = remainDevelopCost / developmentPoint;
-        if (remainDevelopCost % developmentPoint != 0)
-            remainTurn++;
-        return remainTurn;
+        if(developmentPoint!=0)
+        {
+            int remainTurn = remainDevelopCost / developmentPoint;
+            if (remainDevelopCost % developmentPoint != 0)
+                remainTurn++;
+            return remainTurn;
+        }
+        
+        return 0;
     }
 
     public void AddDevelopmentCenter(City city)
@@ -127,8 +145,16 @@ public class UnitDevelopmentProject : MonoBehaviour
         remainDevelopCost -= developmentPoint;
         progressBar.value += developmentPoint;
         completeDPText.text = progressBar.value.ToString();
-        turnText.text = CalculateRemainTurn().ToString();
 
+        int remainTurn = CalculateRemainTurn();
+        if(remainTurn > 0)
+        {
+            turnText.text = remainTurn.ToString();
+        }
+        else
+        {
+            turnText.text = unlimitedString;
+        }
 
         if (remainDevelopCost <= 0)
         {
@@ -140,15 +166,21 @@ public class UnitDevelopmentProject : MonoBehaviour
     public void EndProject()
     {
         player.projectList.Remove(this.gameObject);
-        WorldController.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
-        WorldController.playerStartFunction -= ProjectCompleteCheck;
+        WorldController.instance.currentPlayer.playerStartFunction -= ProjectCompleteCheck;
+        WorldController.instance.playerStartFunction -= ProjectCompleteCheck;
+
+        do
+        {
+            RemoveDevelopmentCenter(developmentCenters[0]);
+
+        } while (developmentCenters.Count > 0);
 
         switch (projectType)
         {
             case ProjectType.UnitDevelopment: //Same Function
 
             case ProjectType.UnitModify:
-                GameObject tempTemplate = Instantiate(unitTemplatePrefab, UI_Controller.unitTemplateListUI.unitTemplateListObj.transform);
+                GameObject tempTemplate = Instantiate(unitTemplatePrefab, WorldController.instance.uiController.unitTemplateListUI.unitTemplateListObj.transform);
                 UnitTemplate unitTemplate = tempTemplate.GetComponent<UnitTemplate>();
                 unitTemplate.CreateTemplate(unitProperty, runtimeFunction);
 
@@ -172,11 +204,20 @@ public class UnitDevelopmentProject : MonoBehaviour
             developmentPoint += city.developmentPointIncome;
         }
 
-        turnText.text = CalculateRemainTurn().ToString();
+        int remainTurn = CalculateRemainTurn();
+        if (remainTurn > 0)
+        {
+            turnText.text = remainTurn.ToString();
+        }
+        else
+        {
+            turnText.text = unlimitedString;
+        }
     }
 
     public void ShowDetail()
     {
-        UI_Controller.progressUI.ShowProjectDetail(this);
+        WorldController.instance.uiController.ClickSound();
+        WorldController.instance.uiController.progressUI.ShowProjectDetail(this);
     }
 }

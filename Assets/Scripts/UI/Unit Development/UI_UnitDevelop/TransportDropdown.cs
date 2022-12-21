@@ -22,6 +22,7 @@ public class TransportDropdown : MonoBehaviour
 
         transportList = transportTypes;
 
+        dropdown.value = 0;
         text.text = transportList[dropdown.value].transportName;
         DropDownSelected(dropdown);
         dropdown.onValueChanged.AddListener(delegate { DropDownSelected(dropdown); });
@@ -32,7 +33,7 @@ public class TransportDropdown : MonoBehaviour
     public void DropDownSelected(TMP_Dropdown dropdown)
     {
         index = dropdown.value;
-        UI_Controller.accessoriesUI.ChangeTransport(transportList[index]);
+        WorldController.instance.uiController.accessoriesUI.ChangeTransport(transportList[index]);
     }
 
     public void onTransportTypeChange(TransportType transportType)

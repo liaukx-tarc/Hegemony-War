@@ -4,6 +4,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [Header("Data")]
+    public string playerName;
     public Color playerColor;
 
     //Resource
@@ -29,9 +30,8 @@ public class Player : MonoBehaviour
     public WorldController.PlayerStartFunction playerStartFunction;
     public WorldController.PlayerEndFunction playerEndFunction;
 
-    [Header("Prefabs")]
+    [Header("Unit List")]
     public GameObject unitListObj;
-    public GameObject buildingListObj;
 
     public void UpdateResource()
     {
@@ -46,7 +46,7 @@ public class Player : MonoBehaviour
         foreach (City city in cityList)
         {
             moneyIncome += city.moneyIncome;
-            sciencePoint += city.sciencePointIncome;
+            //sciencePoint += city.sciencePointIncome;
         }
 
         foreach (Unit unit in unitList)

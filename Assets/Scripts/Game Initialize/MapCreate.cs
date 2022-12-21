@@ -17,11 +17,27 @@ public class MapCreate : MonoBehaviour
     public float forestCost = 0;
     public float marshCost = 0;
 
+    private void Awake()
+    {
+        height = StartMenu.height;
+        width = StartMenu.width;
+        landChance = StartMenu.landChance;
+        coastChance = StartMenu.coastChance;
+        snowChance = StartMenu.snowChance;
+        forestChance = StartMenu.forestChance;
+        desertChance = StartMenu.desertChance;
+        marshChance = StartMenu.marshChance;
+
+        repeatTimes = StartMenu.repeatTimes;
+        deathLimit = StartMenu.deathLimit;
+        birthLimit = StartMenu.birthLimit;
+    }
+
     public void GenerateWorld()
     {
-        WorldController.map = new MapCell[width, height];
-        WorldController.mapSize.x = width;
-        WorldController.mapSize.y = height;
+        WorldController.instance.map = new MapCell[width, height];
+        WorldController.instance.mapSize.x = width;
+        WorldController.instance.mapSize.y = height;
         int[,] mapTypeList = CellularAutomata_MapGenerate();
 
         for (int w = 0; w < width; w++)
@@ -65,7 +81,7 @@ public class MapCreate : MonoBehaviour
                         break;
                 }
 
-                WorldController.map[w, h] = temp.GetComponent<MapCell>();
+                WorldController.instance.map[w, h] = temp.GetComponent<MapCell>();
             }
         }
 
@@ -416,7 +432,7 @@ public class MapCreate : MonoBehaviour
 
     public void LinkNeighborCell()
     {
-        foreach (MapCell mapcell in WorldController.map)
+        foreach (MapCell mapcell in WorldController.instance.map)
         {
             mapcell.neighborCell = new MapCell[6];
 
@@ -424,22 +440,22 @@ public class MapCreate : MonoBehaviour
             {
                 Vector2 neighbourPos = CubeNeighbor(new CubePosition(mapcell.position), n).CubeToOffset();
 
-                if (neighbourPos.y >= 0 && neighbourPos.y < WorldController.map.GetLength(1))
+                if (neighbourPos.y >= 0 && neighbourPos.y < WorldController.instance.map.GetLength(1))
                 {
                     //connect left and right map
                     if (neighbourPos.x == -1)
                     {
-                        mapcell.neighborCell[n] = WorldController.map[WorldController.map.GetLength(0) - 1, (int)neighbourPos.y];
+                        mapcell.neighborCell[n] = WorldController.instance.map[WorldController.instance.map.GetLength(0) - 1, (int)neighbourPos.y];
                     }
 
-                    else if (neighbourPos.x == WorldController.map.GetLength(0))
+                    else if (neighbourPos.x == WorldController.instance.map.GetLength(0))
                     {
-                        mapcell.neighborCell[n] = WorldController.map[0, (int)neighbourPos.y];
+                        mapcell.neighborCell[n] = WorldController.instance.map[0, (int)neighbourPos.y];
                     }
 
                     else
                     {
-                        mapcell.neighborCell[n] = WorldController.map[(int)neighbourPos.x, (int)neighbourPos.y];
+                        mapcell.neighborCell[n] = WorldController.instance.map[(int)neighbourPos.x, (int)neighbourPos.y];
                     }
                 }
             }
@@ -456,9 +472,9 @@ public class MapCreate : MonoBehaviour
         //Ignore the cell can't pass
         for (int w = 0; w < width; w++)
             for (int h = 0; h < height; h++)
-                if (WorldController.map[w,h].mapType == (int)MapTypeName.Ocean) //is ocean cell
+                if (WorldController.instance.map[w,h].mapType == (int)MapTypeName.Ocean) //is ocean cell
                 {
-                    WorldController.map[w, h].groundConnect = 0;
+                    WorldController.instance.map[w, h].groundConnect = 0;
                     checkedMapList[w, h] = true;
                 }         
 
@@ -473,7 +489,7 @@ public class MapCreate : MonoBehaviour
 
                     //add the cell's postion to the queue
                     queue.Enqueue(new Vector2(w, h));
-                    WorldController.map[w, h].groundConnect = connectionNum;
+                    WorldController.instance.map[w, h].groundConnect = connectionNum;
 
                     do//do when the queue is not empty
                     {
@@ -481,7 +497,7 @@ public class MapCreate : MonoBehaviour
                         int curW = (int)currentCell.x;
                         int curH = (int)currentCell.y;
 
-                        foreach (MapCell cell in WorldController.map[curW, curH].neighborCell)
+                        foreach (MapCell cell in WorldController.instance.map[curW, curH].neighborCell)
                         {
                             if (cell != null && !checkedMapList[(int)cell.position.x, (int)cell.position.y] &&
                                 cell.cost != 0 && cell.mapType != (int)MapTypeName.Ocean)
@@ -503,10 +519,10 @@ public class MapCreate : MonoBehaviour
         //Ignore the cell can't pass
         for (int w = 0; w < width; w++)
             for (int h = 0; h < height; h++)
-                if (WorldController.map[w,h].mapType != (int)MapTypeName.Coast && //Not Coast cell
-                    WorldController.map[w, h].mapType != (int)MapTypeName.Ocean) //Not Ocean cell
+                if (WorldController.instance.map[w,h].mapType != (int)MapTypeName.Coast && //Not Coast cell
+                    WorldController.instance.map[w, h].mapType != (int)MapTypeName.Ocean) //Not Ocean cell
                 {
-                    WorldController.map[w, h].seaConnect = 0;
+                    WorldController.instance.map[w, h].seaConnect = 0;
                     coastCheckedMapList[w, h] = true;
                 }
                     
@@ -522,7 +538,7 @@ public class MapCreate : MonoBehaviour
 
                     //add the cell's postion to the queue
                     queue.Enqueue(new Vector2(w, h));
-                    WorldController.map[w, h].seaConnect = seaConnectionNum;
+                    WorldController.instance.map[w, h].seaConnect = seaConnectionNum;
 
                     do//do when the queue is not empty
                     {
@@ -530,7 +546,7 @@ public class MapCreate : MonoBehaviour
                         int curW = (int)currentCell.x;
                         int curH = (int)currentCell.y;
 
-                        foreach (MapCell cell in WorldController.map[curW, curH].neighborCell)
+                        foreach (MapCell cell in WorldController.instance.map[curW, curH].neighborCell)
                         {
                             if (cell != null && !coastCheckedMapList[(int)cell.position.x, (int)cell.position.y] &&
                                 cell.cost != 0 && (cell.mapType == (int)MapTypeName.Ocean || cell.mapType == (int)MapTypeName.Coast))

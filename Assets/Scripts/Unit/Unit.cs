@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Unit : MapObject
 {
+    [Header("Unit Data")]
     //Player
     public Player player;
 
@@ -14,11 +15,15 @@ public class Unit : MapObject
     //Unit state
     [Header("State")]
     public int currentHp;
+    public int hpRestore;
     public int damage;
+    public int range;
     public float remainMove;
 
     public bool isAction = false;
     public bool isSleep = false;
+    public bool isAttack = false;
+    public bool completeAttack = false;
     public MapCell currentPos;
 
     //Moving
@@ -28,6 +33,7 @@ public class Unit : MapObject
     public bool startMove = false;
     public bool isNoCost = false;
     public MapCell targetPos;
+    public MapCell selectingTarget;
     public int moveFrame;
     int moveCount = 0;
     MapCell currentPath;
@@ -38,11 +44,34 @@ public class Unit : MapObject
     public bool isBuilding = false;
     public GameObject cityModel;
 
+    //Attack
+    [Header("Attack")]
+    public MapObject attackTarget;
+
     public void InitializeUnit()
     {
+        icon.sprite = property.unitIcon;
+        switch (property.transportProperty.transportType)
+        {
+            case TransportType.Vechicle:
+                iconBackground.color = WorldController.instance.uiController.vechicleColor;
+                break;
+
+            case TransportType.Aircarft:
+                iconBackground.color = WorldController.instance.uiController.aircarftColor;
+                break;
+
+            case TransportType.Ship:
+                iconBackground.color = WorldController.instance.uiController.shipColor;
+                break;
+        }
+
+        slider.value = slider.maxValue = property.maxHp;
         currentHp = property.maxHp;
+        hpRestore = WorldController.instance.unitController.hpRestore;
         damage = property.damage;
         remainMove = property.speed;
+        range = property.range;
 
         switch (property.transportProperty.transportType)
         {
@@ -58,6 +87,65 @@ public class Unit : MapObject
             case TransportType.Ship:
                 AStar_PathFinding = Sea_AStar_PathFinding;
                 break;
+        }
+    }
+
+    public void TurnStart()
+    {
+        remainMove = property.speed;
+        isAction = false;
+        completeAttack = false;
+
+        if(currentHp < property.maxHp)
+        {
+            currentHp += hpRestore;
+            currentHp = Mathf.Min(currentHp, property.maxHp);
+            slider.value = currentHp;
+
+            if (currentHp == property.maxHp)
+            {
+                slider.gameObject.SetActive(false);
+            }
+        }
+
+        if(isAttack)
+        {
+            if (attackTarget == null)
+            {
+                isAttack = false;
+                isAutoMove = false;
+                path.Clear();
+            }
+        }
+
+        else if(isBuilding)
+        {
+            if(targetPos.unit != null || targetPos.building != null)
+            {
+                isAutoMove = false;
+                path.Clear();
+
+                Destroy(cityModel);
+                isBuilding = false;
+            }
+           
+            else
+            {
+                List<MapCell> cellsInBuildingRange = targetPos.CheckCellInRange(3);
+
+                foreach (MapCell cell in cellsInBuildingRange)
+                {
+                    if (cell.belongCity != null)
+                    {
+                        isAutoMove = false;
+                        path.Clear();
+
+                        Destroy(cityModel);
+                        isBuilding = false;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -88,14 +176,10 @@ public class Unit : MapObject
                 {
                     isAction = true;
                     isAutoMove = true;
-                    WorldController.activeUnitList.Remove(this);
+                    startMove = false;
+                    WorldController.instance.activeUnitList.Remove(this);
                 }
 
-            }
-
-            else
-            {
-                isAction = true;
             }
         }
 
@@ -103,27 +187,13 @@ public class Unit : MapObject
         {
             if (moveCount == moveFrame)
             {
-                switch (property.transportProperty.transportType)
-                {
-                    case TransportType.Vechicle:
-                        currentPos.groundUnit = null;
-                        currentPath.groundUnit = this;
-                        break;
-
-                    case TransportType.Aircarft:
-                        currentPos.airForceUnit = null;
-                        currentPath.airForceUnit = this;
-                        break;
-
-                    case TransportType.Ship:
-                        currentPos.navalUnit = null;
-                        currentPath.navalUnit = this;
-                        break;
-                }
-
                 currentPos.mapObjectList.Remove(this);
+                currentPos.unit = null;
+
                 currentPos = currentPath;
+
                 currentPos.mapObjectList.Add(this);
+                currentPos.unit = this;
 
                 path.Remove(currentPath);
                 showPath = false;
@@ -132,30 +202,94 @@ public class Unit : MapObject
                 {
                     if(isAutoMove)
                     {
-                        isAction = false;
                         isAutoMove = false;
-                        WorldController.activeUnitList.Add(this);
-                        WorldController.movingUnitList.Remove(this);
-                        WorldController.arriveUnit = this;
+                        
+                        if (!isAttack)
+                        {
+                            isAction = false;
+                            WorldController.instance.activeUnitList.Add(this);
+                            WorldController.instance.isAutoUnitArrive = true;
+                        }
 
-                        if (!isBuilding)
-                            WorldController.autoUnitArrive = true;
+                        else
+                        {
+                            isAction = true;
+                        }
+                           
+
+                        WorldController.instance.movingUnitList.Remove(this);
+                        WorldController.instance.isAutoUnitMoving = false;
                     }
 
                     else
                     {
                         isAction = true;
-                        WorldController.activeUnitList.Remove(this);
+                        WorldController.instance.activeUnitList.Remove(this);
+                    }
+
+                    //Capture city
+                    if (currentPos.building != null && currentPos.building.GetType() == typeof(City) &&
+                        currentPos.building.isDestroy)
+                    {
+                        City city = (City)currentPos.building;
+
+                        city.isDestroy = false;
+
+                        if (city.player != player)
+                            city.CaptureCity(player);
                     }
 
                     if (isBuilding)
                     {
-                        WorldController.buildingController.BuildCity(player, cityModel, currentPos);
-                        cityModel = null;
-                        UnitDestroy();
+                        bool canBuild = true;
+
+                        List<MapCell> cellsInBuildingRange = targetPos.CheckCellInRange(3);
+
+                        foreach (MapCell cell in cellsInBuildingRange)
+                        {
+                            if (cell.belongCity != null)
+                            {
+                                Destroy(cityModel);
+                                canBuild = false;
+                                break;
+                            }
+                        }
+
+                        if(canBuild)
+                        {
+                            WorldController.instance.buildingController.BuildCity(player, cityModel, currentPos);
+                            cityModel = null;
+                            UnitDestroy();
+                        }
+                        
                         isBuilding = false;
                     }
 
+                    if (isAttack)
+                    {
+                        if (attackTarget.GetType() == typeof(Unit))
+                        {
+                            Unit unit = (Unit)attackTarget;
+                            if (currentPos.cubePosition.CheckDistance(unit.currentPos.cubePosition) <= range)
+                            {
+                                AttackUnit(unit);
+                            }
+                        }
+
+                        else if (attackTarget.GetType() == typeof(City) || attackTarget.GetType() == typeof(Area))
+                        {
+                            Building building = (Building)attackTarget;
+                            if (currentPos.cubePosition.CheckDistance(building.belongCell.cubePosition) <= range)
+                            {
+                                AttackBuilding(building);
+                            }
+                        }
+
+                        completeAttack = true;
+
+                    }
+
+                    isAttack = false;
                     isMoving = false;
                 }
 
@@ -178,7 +312,7 @@ public class Unit : MapObject
                             remainMove -= currentPath.cost;
 
                         moveDistance = currentPath.transform.position - currentPos.transform.position;
-                        this.transform.LookAt(new Vector3(currentPath.transform.position.x, this.transform.position.y, currentPath.transform.position.z));
+                        rendererCpn.gameObject.transform.LookAt(new Vector3(currentPath.transform.position.x, this.transform.position.y, currentPath.transform.position.z));
 
                         moveCount = 0;
                     }
@@ -187,7 +321,9 @@ public class Unit : MapObject
                     {
                         isAutoMove = true;
                         isAction = true;
-                        WorldController.activeUnitList.Remove(this);
+                        WorldController.instance.activeUnitList.Remove(this);
+                        WorldController.instance.movingUnitList.Remove(this);
+                        WorldController.instance.isAutoUnitMoving = false;
                         isMoving = false;
                     }
                 }
@@ -215,14 +351,12 @@ public class Unit : MapObject
     {
         this.targetPos = targetPos;
         StopAllCoroutines();
-        path.Clear();
         StartCoroutine(AStar_PathFinding(targetPos));
     }
 
     IEnumerator Ground_AStar_PathFinding(MapCell targetPos)
     {
         endSearch = false;
-        showPath = false;
 
         Node startNode = new Node(currentPos);
         startNode.gCost = 0;
@@ -239,8 +373,10 @@ public class Unit : MapObject
         bool inClose;
         int seachcount = 0;
 
-        if (startNode.mapCell.groundConnect == targetPos.groundConnect)
+        if (isAttack || startNode.mapCell.groundConnect == targetPos.groundConnect)
         {
+            List<MapCell> listOfTarget = targetPos.CheckCellInRange(range);
+
             do
             {
                 if (seachcount % turnSeachCount == 0)
@@ -264,6 +400,15 @@ public class Unit : MapObject
                     openList.Remove(currentNode);
                     closeList.Add(currentNode);
 
+                    if(isAttack)
+                    {
+                        if(listOfTarget.Contains(currentNode.mapCell))
+                        {
+                            this.targetPos = targetPos = currentNode.mapCell;
+
+                        }
+                    }
+
                     if (currentNode.mapCell == targetPos)
                     {
                         Node temp = currentNode;
@@ -276,9 +421,6 @@ public class Unit : MapObject
 
                         path.Add(temp.mapCell);
                         path.Reverse();
-
-                        //Calculate End Cell of each turn
-                        eachTurnStartCell.Clear();
 
                         float tempRemainMove = remainMove;
 
@@ -308,7 +450,9 @@ public class Unit : MapObject
                         {
                             neighbourNode = new Node(currentNode.mapCell.neighborCell[i]);
 
-                            if (neighbourNode.mapCell.mapType != (int)MapTypeName.Ocean)
+                            if (neighbourNode.mapCell == targetPos || 
+                                (neighbourNode.mapCell.mapType != (int)MapTypeName.Ocean && neighbourNode.mapCell.unit == null &&
+                                (neighbourNode.mapCell.building == null || neighbourNode.mapCell.building.player == player || neighbourNode.mapCell.building.isDestroy)))
                             {
                                 foreach (Node node in closeList)
                                 {
@@ -351,13 +495,21 @@ public class Unit : MapObject
                 }
                 seachcount++;
             } while (openList.Count > 0);
+
+            isBuilding = false;
+            isAttack = false;
+            startMove = false;
+            endSearch = true;
+            attackTarget = null;
         }
 
         else
         {
             isBuilding = false;
+            isAttack = false;
             startMove = false;
             endSearch = true;
+            attackTarget = null;
             yield break;
         }
     }
@@ -365,7 +517,6 @@ public class Unit : MapObject
     IEnumerator Sea_AStar_PathFinding(MapCell targetPos)
     {
         endSearch = false;
-        showPath = false;
 
         Node startNode = new Node(currentPos);
         startNode.gCost = 0;
@@ -382,8 +533,10 @@ public class Unit : MapObject
         bool inClose;
         int seachcount = 0;
 
-        if (startNode.mapCell.seaConnect == targetPos.seaConnect)
+        if (isAttack || startNode.mapCell.seaConnect == targetPos.seaConnect)
         {
+            List<MapCell> listOfTarget = targetPos.CheckCellInRange(range);
+
             do
             {
                 if (seachcount % turnSeachCount == 0)
@@ -406,6 +559,15 @@ public class Unit : MapObject
                     openList.Remove(currentNode);
                     closeList.Add(currentNode);
 
+                    if (isAttack)
+                    {
+                        if (listOfTarget.Contains(currentNode.mapCell))
+                        {
+                            this.targetPos = targetPos = currentNode.mapCell;
+
+                        }
+                    }
+
                     if (currentNode.mapCell == targetPos)
                     {
                         Node temp = currentNode;
@@ -418,9 +580,6 @@ public class Unit : MapObject
 
                         path.Add(temp.mapCell);
                         path.Reverse();
-
-                        //Calculate End Cell of each turn
-                        eachTurnStartCell.Clear();
 
                         float tempRemainMove = remainMove;
 
@@ -449,7 +608,11 @@ public class Unit : MapObject
                         if (currentNode.mapCell.neighborCell[i] != null)
                         {
                             neighbourNode = new Node(currentNode.mapCell.neighborCell[i]);
-                            if (neighbourNode.mapCell.mapType == (int)MapTypeName.Ocean || neighbourNode.mapCell.mapType == (int)MapTypeName.Coast)
+
+                            if (neighbourNode.mapCell == targetPos || 
+                                ((neighbourNode.mapCell.mapType == (int)MapTypeName.Ocean || neighbourNode.mapCell.mapType == (int)MapTypeName.Coast) && 
+                                neighbourNode.mapCell.unit == null && (neighbourNode.mapCell.building == null 
+                                || neighbourNode.mapCell.building.player == player || neighbourNode.mapCell.building.isDestroy)))
                             {
                                 foreach (Node node in closeList)
                                 {
@@ -492,13 +655,21 @@ public class Unit : MapObject
                 }
                 seachcount++;
             } while (openList.Count > 0);
+
+            isBuilding = false;
+            isAttack = false;
+            startMove = false;
+            endSearch = true;
+            attackTarget = null;
         }
 
         else
         {
             isBuilding = false;
+            isAttack = false;
             startMove = false;
             endSearch = true;
+            attackTarget = null;
             yield break;
         }
     }
@@ -506,7 +677,6 @@ public class Unit : MapObject
     IEnumerator NotCost_AStar_PathFinding(MapCell targetPos)
     {
         endSearch = false;
-        showPath = false;
 
         Node startNode = new Node(currentPos);
         startNode.gCost = 0;
@@ -522,6 +692,8 @@ public class Unit : MapObject
         bool haveSame;
         bool inClose;
         int seachcount = 0;
+
+        List<MapCell> listOfTarget = targetPos.CheckCellInRange(range);
 
         do
         {
@@ -546,6 +718,15 @@ public class Unit : MapObject
                 openList.Remove(currentNode);
                 closeList.Add(currentNode);
 
+                if (isAttack)
+                {
+                    if (listOfTarget.Contains(currentNode.mapCell))
+                    {
+                        this.targetPos = targetPos = currentNode.mapCell;
+
+                    }
+                }
+
                 if (currentNode.mapCell == targetPos)
                 {
                     Node temp = currentNode;
@@ -558,9 +739,6 @@ public class Unit : MapObject
 
                     path.Add(temp.mapCell);
                     path.Reverse();
-
-                    //Calculate End Cell of each turn
-                    eachTurnStartCell.Clear();
 
                     float tempRemainMove = remainMove;
 
@@ -590,7 +768,8 @@ public class Unit : MapObject
                     {
                         neighbourNode = new Node(currentNode.mapCell.neighborCell[i]);
 
-                        if (neighbourNode.mapCell.cost != 0)//cant move
+                        if (neighbourNode.mapCell == targetPos || (neighbourNode.mapCell.unit == null && 
+                            (neighbourNode.mapCell.building == null || neighbourNode.mapCell.building.player == player || neighbourNode.mapCell.building.isDestroy)))
                         {
                             foreach (Node node in closeList)
                             {
@@ -634,39 +813,173 @@ public class Unit : MapObject
             seachcount++;
         } while (openList.Count > 0);
 
+        isBuilding = false;
+        isAttack = false;
+        startMove = false;
+        endSearch = true;
+        attackTarget = null;
+    }
+
+    public bool CheckAttackUnit(Unit unit)
+    {
+        if(range <= 0)
+        {
+            startMove = false;
+            endSearch = true;
+            return false;
+        }
+
+        if(property.transportProperty.transportType == TransportType.Vechicle)
+        {
+            switch (unit.property.transportProperty.transportType)
+            {
+                case TransportType.Aircarft:
+                    startMove = false;
+                    endSearch = true;
+                    return false;
+            }
+        }
+
+        if(currentPos.cubePosition.CheckDistance(unit.currentPos.cubePosition) <= range)
+        {
+            AttackUnit(unit);
+            
+            WorldController.instance.activeUnitList.Remove(this);
+            completeAttack = true;
+            isAction = true;
+            return true;
+        }
+
+        else
+        {
+            isAttack = true;
+            CheckPath(unit.currentPos);
+            attackTarget = unit;
+            return true;
+        }  
+    }
+
+    public void AttackUnit(Unit unit)
+    {
+        unit.currentHp -= Mathf.Max(damage - unit.property.armor, 0);
+        unit.slider.value = unit.currentHp;
+        unit.slider.gameObject.SetActive(true);
+
+        if (unit.currentHp <= 0)
+        {
+            unit.UnitDestroy();
+        }
+
+        if (unit.damage != 0 && unit.currentPos.cubePosition.CheckDistance(currentPos.cubePosition) <= unit.range)
+        {
+            currentHp -= Mathf.Max(unit.damage - property.armor, 0);
+            slider.value = currentHp;
+            slider.gameObject.SetActive(true);
+
+            if (currentHp <= 0)
+            {
+                UnitDestroy();
+            }
+        }
+
+        if (isAutoMove)
+            WorldController.instance.movingUnitList.Remove(this);
+    }
+
+    public bool CheckAttackBuilding(Building building)
+    {
+        if (range <= 0)
+        {
+            startMove = false;
+            endSearch = true;
+            return false;
+        }
+
+        if (currentPos.cubePosition.CheckDistance(building.belongCell.cubePosition) <= range)
+        {
+            AttackBuilding(building);
+
+            WorldController.instance.activeUnitList.Remove(this);
+            completeAttack = true;
+            isAction = true;
+            return true;
+        }
+        else
+        {
+            isAttack = true;
+            CheckPath(building.belongCell);
+            attackTarget = building;
+            return true;
+        }
+    }
+
+    public void AttackBuilding(Building building)
+    {
+        building.currentHp -= Mathf.Max(damage - building.defense, 0);
+        building.currentHp = Mathf.Max(building.currentHp, 0);
+        building.slider.value = building.currentHp;
+        building.slider.gameObject.SetActive(true);
+
+        if (building.currentHp <= 0)
+        {
+            building.isDestroy = true;
+
+            if (building.GetType() == typeof(Area))
+            {
+                Area area = (Area)building;
+                area.belongCity.CalculateIncome();
+            }
+
+            else if (building.GetType() == typeof(City))
+            {
+                City city = (City)building;
+                city.CalculateIncome();
+            }
+        }
+
+        if (building.buildingProperty.buildingType == BuildingType.City ||
+            building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+            building.buildingProperty.buildingType == BuildingType.AirForceBase ||
+            building.buildingProperty.buildingType == BuildingType.NavalBase)
+        {
+            if (building.belongCell.cubePosition.CheckDistance(currentPos.cubePosition) <= 3)
+            {
+                currentHp -= Mathf.Max(building.damage - property.armor, 0);
+                slider.value = currentHp;
+                slider.gameObject.SetActive(true);
+
+                if (currentHp <= 0)
+                {
+                    UnitDestroy();
+                }
+            }
+        }
+
+        if(isAutoMove)
+            WorldController.instance.movingUnitList.Remove(this);
     }
 
     public void UnitDestroy()
     {
         player.unitList.Remove(this);
-        WorldController.activeUnitList.Remove(this);
-        WorldController.movingUnitList.Remove(this);
+        WorldController.instance.activeUnitList.Remove(this);
+        WorldController.instance.movingUnitList.Remove(this);
 
-        switch (property.transportProperty.transportType)
-        {
-            case TransportType.Vechicle:
-                currentPos.groundUnit = null;
-                break;
-
-            case TransportType.Aircarft:
-                currentPos.airForceUnit = null;
-                break;
-
-            case TransportType.Ship:
-                currentPos.navalUnit = null;
-                break;
-        }
+        currentPos.unit = null;
 
         currentPos.mapObjectList.Remove(this);
 
-        if(PlayerController.selectedUnit == this)
+        if(WorldController.instance.playerController.selectedUnit == this)
         {
-            WorldController.playerController.CancelUnitSelect();
-            WorldController.UI.CloseUnitUI();
+            WorldController.instance.playerController.selectedUnit = null;
+            WorldController.instance.playerController.CancelUnitSelect();
+            WorldController.instance.uiController.CloseUnitUI();
         }
 
         if(cityModel != null)
             Destroy(cityModel);
+
+        WorldController.instance.CheckVictory();
 
         Destroy(this.gameObject);
     }

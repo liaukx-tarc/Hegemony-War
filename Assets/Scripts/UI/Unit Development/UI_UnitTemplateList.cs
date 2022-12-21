@@ -47,7 +47,7 @@ public class UI_UnitTemplateList : MonoBehaviour
     public void UnitTemplateUI_Start()
     {
 
-        UI_Controller.closeAllUIFunction += CloseTemplateUI;
+        WorldController.instance.uiController.closeAllUIFunction += CloseTemplateUI;
 
         UT_Position = UT_RectTransform.anchoredPosition;
     }
@@ -62,8 +62,8 @@ public class UI_UnitTemplateList : MonoBehaviour
         tempModify = isModify;
         tempUpgrade = isUpgrade;
 
-        UI_Controller.closeAllUIFunction();
-        WorldController.UI.EnableScreenBlock();
+        WorldController.instance.uiController.closeAllUIFunction();
+        WorldController.instance.uiController.EnableScreenBlock();
 
         isModify = tempModify;
         isUpgrade = tempUpgrade;
@@ -94,11 +94,12 @@ public class UI_UnitTemplateList : MonoBehaviour
 
     public void OpenTemplateUI()
     {
+        WorldController.instance.uiController.ClickSound();
         UpdateTemplateList();
 
-        foreach (Player player in WorldController.playerList)
+        foreach (Player player in WorldController.instance.playerList)
         {
-            if(player == WorldController.currentPlayer)
+            if (player == WorldController.instance.currentPlayer)
             {
                 foreach (UnitTemplate unitTemplate in player.unitTemplateList)
                 {
@@ -116,7 +117,7 @@ public class UI_UnitTemplateList : MonoBehaviour
         }
 
 
-        if (WorldController.currentPlayer.unitTemplateList.Count > 0)
+        if (WorldController.instance.currentPlayer.unitTemplateList.Count > 0)
             noneText.SetActive(false);
         else
             noneText.SetActive(true);
@@ -128,9 +129,9 @@ public class UI_UnitTemplateList : MonoBehaviour
 
         UpdateTemplateList();
 
-        foreach (Player player in WorldController.playerList)
+        foreach (Player player in WorldController.instance.playerList)
         {
-            if (player == WorldController.currentPlayer)
+            if (player == WorldController.instance.currentPlayer)
             {
                 foreach (UnitTemplate unitTemplate in player.unitTemplateList)
                 {
@@ -165,7 +166,7 @@ public class UI_UnitTemplateList : MonoBehaviour
         unitTemplateUI.SetActive(false);
         templateInfoPanel.SetActive(false);
 
-        WorldController.UI.DisableScreenBlock();
+        WorldController.instance.uiController.DisableScreenBlock();
 
         isModify = false;
         isUpgrade = false;
@@ -293,15 +294,15 @@ public class UI_UnitTemplateList : MonoBehaviour
     public void onClickFunction()
     {
         if (isModify)
-            UI_Controller.accessoriesUI.UIOpen(UI_Controller.buildingUIController.selectedCity, ProjectType.UnitModify, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
+            WorldController.instance.uiController.accessoriesUI.UIOpen(WorldController.instance.uiController.buildingUIController.selectedCity, ProjectType.UnitModify, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
 
         else if (isUpgrade)
-            UI_Controller.accessoriesUI.UIOpen(UI_Controller.buildingUIController.selectedCity, ProjectType.UnitUpgrade, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
+            WorldController.instance.uiController.accessoriesUI.UIOpen(WorldController.instance.uiController.buildingUIController.selectedCity, ProjectType.UnitUpgrade, selectedTemplate.property.transportProperty.transportType, selectedTemplate);
 
         else
-            UI_Controller.accessoriesUI.showTemplateDetail(selectedTemplate.property);
+            WorldController.instance.uiController.accessoriesUI.showTemplateDetail(selectedTemplate.property);
 
-        WorldController.UI.OpenAccessoriesUI();
+        WorldController.instance.uiController.OpenAccessoriesUI();
         CloseTemplateUI();
     }
 
@@ -317,7 +318,7 @@ public class UI_UnitTemplateList : MonoBehaviour
             }
         }
 
-        unitTagsList.Sort(UI_AccessoriesEquip.CompareListByUnitTag);
+        unitTagsList.Sort(WorldController.instance.uiController.accessoriesUI.CompareListByUnitTag);
         for (int i = 0; i < tagTextArray.Count; i++)
         {
             if (i < unitTagsList.Count)

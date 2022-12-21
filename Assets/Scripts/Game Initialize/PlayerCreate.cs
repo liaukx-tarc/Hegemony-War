@@ -1,39 +1,37 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerCreate : MonoBehaviour
 {
-    public GameObject aiPlayer;
-    public int aiPlayerNum;
+    public Transform playerListObj;
 
-    GameObject tempPlayer;
+    [Space]
+    public GameObject humanPlayer;
+    public int humanPlayerNum;
+    public List<string> humanPlayerNames = new List<string>();
+    public List<Color> humanPlayerColors = new List<Color>();
+
+    private void Awake()
+    {
+        humanPlayerNum = StartMenu.playerNum;
+        humanPlayerNames = StartMenu.playerNameList;
+        humanPlayerColors = StartMenu.playerColorList;
+    }
 
     public void CreatePlayer()
     {
-        //Adding the human player to playerlist
-        foreach (GameObject humanPlayer in GameObject.FindGameObjectsWithTag("Player"))
-        {
-            WorldController.playerList.Add(humanPlayer.GetComponent<HumanPlayer>());
-        }
-        
-        GameObject playerListObj = WorldController.playerList[0].transform.parent.gameObject;
-
-        //Create AI player
-        for (int i = 0; i < aiPlayerNum; i++)
-        {
-            tempPlayer = Instantiate(aiPlayer, new Vector3(0, 0, 0), Quaternion.identity, playerListObj.transform);
-            tempPlayer.name = "AI Player " + (i + 1);
-            WorldController.playerList.Add(tempPlayer.GetComponent<AI_Player>());
-        }
-
-        //Create unit list and building list for all player
         GameObject empty = new GameObject();
-        foreach (Player player in WorldController.playerList)
+
+        for (int i = 0; i < humanPlayerNum; i++)
         {
+            HumanPlayer player = Instantiate(humanPlayer, playerListObj).GetComponent<HumanPlayer>();
+            WorldController.instance.playerList.Add(player);
+            
+            player.playerName = player.gameObject.name = humanPlayerNames[i];
+            player.playerColor = humanPlayerColors[i];
+
             player.unitListObj = Instantiate(empty, player.transform);
             player.unitListObj.name = "UnitList";
-
-            player.buildingListObj = Instantiate(empty, player.transform);
-            player.buildingListObj.name = "BuildingList";
         }
     }
 }

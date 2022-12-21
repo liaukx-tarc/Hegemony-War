@@ -14,6 +14,7 @@ public class TransportProperty : ScriptableObject
     [Header("Info")]
     public string transportName;
     public GameObject model;
+    public Sprite transportIcon;
 
     public TransportType transportType;
 

@@ -27,9 +27,7 @@ public class MapCell : MonoBehaviour
     public int seaConnect;
 
     //Unit
-    public Unit groundUnit;
-    public Unit navalUnit;
-    public Unit airForceUnit;
+    public Unit unit;
     public Building building;
     public List<MapObject>mapObjectList = new List<MapObject>();
 
@@ -60,15 +58,15 @@ public class MapCell : MonoBehaviour
 
                 if (cellPos.x < 0)
                 {
-                    cellPos.x = WorldController.map.GetLength(0) + cellPos.x;
+                    cellPos.x = WorldController.instance.map.GetLength(0) + cellPos.x;
                 }
 
-                else if (cellPos.x >= WorldController.map.GetLength(0))
-                    cellPos.x = cellPos.x - WorldController.map.GetLength(0);
+                else if (cellPos.x >= WorldController.instance.map.GetLength(0))
+                    cellPos.x = cellPos.x - WorldController.instance.map.GetLength(0);
 
-                if (cellPos.y >= 0 && cellPos.y < WorldController.map.GetLength(1) && cellPos != position)
+                if (cellPos.y >= 0 && cellPos.y < WorldController.instance.map.GetLength(1) && cellPos != position)
                 {
-                    cellInRange.Add(WorldController.map[(int)cellPos.x, (int)cellPos.y]);
+                    cellInRange.Add(WorldController.instance.map[(int)cellPos.x, (int)cellPos.y]);
                 }
                     
             }
@@ -92,7 +90,7 @@ public class MapCell : MonoBehaviour
                  cubePosition.r + (targetPos.r - cubePosition.r) * (1.0f / distance * d),
                  cubePosition.s + (targetPos.s - cubePosition.s) * (1.0f / distance * d)).CubeToOffset();
 
-            cellAlongLine.Add(WorldController.map[(int)cellPos.x, (int)cellPos.y]);
+            cellAlongLine.Add(WorldController.instance.map[(int)cellPos.x, (int)cellPos.y]);
         }
 
         return cellAlongLine;

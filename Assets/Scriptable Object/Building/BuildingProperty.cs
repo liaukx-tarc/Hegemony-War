@@ -4,7 +4,7 @@ public enum BuildingType
 {
     City,
     AgriculturalArea,
-    ResearchCenter,
+    //ResearchCenter,
     IndustrialArea,
     CommercialCenter,
     Harbor,

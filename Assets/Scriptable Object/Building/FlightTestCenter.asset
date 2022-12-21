@@ -17,10 +17,10 @@ MonoBehaviour:
   model: {fileID: 7092537943279512429, guid: 082e06a2b2f5081478705c2ca4b13199, type: 3}
   backgroundColor: {r: 0.8627451, g: 0.8666667, b: 0.88235295, a: 1}
   iconColor: {r: 0.49803922, g: 0.56078434, b: 0.6509804, a: 1}
-  buildingType: 12
+  buildingType: 11
   buildingRange: 1
   produceCost: 600
-  maintenanceCost: 20
+  maintenanceCost: 60
   healthPoint: 100
   defense: 10
   damage: 0
@@ -28,4 +28,4 @@ MonoBehaviour:
   food: 0
   productivity: 0
   sciencePoint: 0
-  developmentPoint: 20
+  developmentPoint: 40

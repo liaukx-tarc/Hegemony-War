@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1541b179070c6e44ab762bd4c7b9f9bd, type: 3}
+  m_Name: Cruisers
+  m_EditorClassIdentifier: 
+  transportName: Cruisers
+  model: {fileID: 2951739783136704349, guid: 652790d20c30cdf4fad3fd9458d16fc0, type: 3}
+  transportIcon: {fileID: 21300000, guid: 95eead7e273aa144e8bb295e397c61d5, type: 3}
+  transportType: 2
+  heavyWeaponNum: 2
+  mediumWeaponNum: 2
+  lightWeaponNum: 1
+  defenceEquipmentNum: 2
+  auxiliaryEquipmentNum: 1
+  maxHp: 80
+  armor: 3
+  speed: 5
+  load: 80
+  budgetCost: 15
+  developCost: 500
+  maintanceCost: 25
+  produceCost: 800

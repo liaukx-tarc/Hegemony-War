@@ -29,15 +29,15 @@ public class UnitTemplate: MonoBehaviour
         switch (property.transportProperty.transportType)
         {
             case TransportType.Vechicle:
-                iconBackground.color = WorldController.UI.vechicleColor;
+                iconBackground.color = WorldController.instance.uiController.vechicleColor;
                 break;
 
             case TransportType.Aircarft:
-                iconBackground.color = WorldController.UI.aircarftColor;
+                iconBackground.color = WorldController.instance.uiController.aircarftColor;
                 break;
 
             case TransportType.Ship:
-                iconBackground.color = WorldController.UI.shipColor;
+                iconBackground.color = WorldController.instance.uiController.shipColor;
                 break;
         }
 
@@ -70,6 +70,7 @@ public class UnitTemplate: MonoBehaviour
 
     public void UnitTemplateDetail()
     {
-        UI_Controller.unitTemplateListUI.ShowTemplateInfo(this);
+        WorldController.instance.uiController.ClickSound();
+        WorldController.instance.uiController.unitTemplateListUI.ShowTemplateInfo(this);
     }
 }

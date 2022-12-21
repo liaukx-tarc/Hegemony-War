@@ -13,45 +13,46 @@ public class UnitTemplateSelection : MonoBehaviour
 
     public void onClick()
     {
-        City selectingCity = (City)PlayerController.selectedBuilding;
+        WorldController.instance.uiController.ClickSound();
+        City selectingCity = (City)WorldController.instance.playerController.selectedBuilding;
 
-        MapCell produceCell = null;
-
-        switch (unitTemplate.property.transportProperty.transportType)
+        if (selectingCity.producingArea == null && selectingCity.producingUnit == null)
         {
-            case TransportType.Vechicle:
-                foreach(Area area in selectingCity.areaList)
-                {
-                    if (area.buildingProperty.buildingType == BuildingType.MilitaryBase)
-                        produceCell = area.belongCell;
-                }
-                break;
+            MapCell produceCell = null;
 
-            case TransportType.Aircarft:
-                foreach (Area area in selectingCity.areaList)
-                {
-                    if (area.buildingProperty.buildingType == BuildingType.AirForceBase)
-                        produceCell = area.belongCell;
-                }
-                break;
+            switch (unitTemplate.property.transportProperty.transportType)
+            {
+                case TransportType.Vechicle:
+                    foreach (Area area in selectingCity.areaList)
+                    {
+                        if (area.buildingProperty.buildingType == BuildingType.MilitaryBase)
+                            produceCell = area.belongCell;
+                    }
+                    break;
 
-            case TransportType.Ship:
-                foreach (Area area in selectingCity.areaList)
-                {
-                    if (area.buildingProperty.buildingType == BuildingType.NavalBase)
-                        produceCell = area.belongCell;
-                }
-                break;
-        }
+                case TransportType.Aircarft:
+                    foreach (Area area in selectingCity.areaList)
+                    {
+                        if (area.buildingProperty.buildingType == BuildingType.AirForceBase)
+                            produceCell = area.belongCell;
+                    }
+                    break;
 
-        if (selectingCity.producingArea == null || selectingCity.producingUnit == null)
-        {
+                case TransportType.Ship:
+                    foreach (Area area in selectingCity.areaList)
+                    {
+                        if (area.buildingProperty.buildingType == BuildingType.NavalBase)
+                            produceCell = area.belongCell;
+                    }
+                    break;
+            }
+
             selectingCity.Produce(unitTemplate, produceCell);
         }
 
         else
         {
-            StartCoroutine(UI_Controller.buildingUIController.AddProduceFail());
+            StartCoroutine(WorldController.instance.uiController.buildingUIController.AddProduceFail());
         }       
     }
 }

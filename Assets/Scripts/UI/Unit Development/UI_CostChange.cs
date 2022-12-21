@@ -48,19 +48,19 @@ public class UI_CostChange : MonoBehaviour
         switch (costType)
         {
             case developmentCostType.Budget:
-                UI_Controller.accessoriesUI.budgetPercentage = costPercentage;
+                WorldController.instance.uiController.accessoriesUI.budgetPercentage = costPercentage;
                 break;
             case developmentCostType.Quality:
-                UI_Controller.accessoriesUI.qualityPercentage = costPercentage;
+                WorldController.instance.uiController.accessoriesUI.qualityPercentage = costPercentage;
                 break;
             case developmentCostType.Simplify:
-                UI_Controller.accessoriesUI.simplifyPercentage = costPercentage;
+                WorldController.instance.uiController.accessoriesUI.simplifyPercentage = costPercentage;
                 break;
             case developmentCostType.ReduceCost:
-                UI_Controller.accessoriesUI.reduceCostPercentage = costPercentage;
+                WorldController.instance.uiController.accessoriesUI.reduceCostPercentage = costPercentage;
                 break;
         }
 
-        UI_Controller.accessoriesUI.UpdateUnitProperty();
+        WorldController.instance.uiController.accessoriesUI.UpdateUnitProperty();
     }
 }

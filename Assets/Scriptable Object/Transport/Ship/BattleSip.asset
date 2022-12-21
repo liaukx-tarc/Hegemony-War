@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1541b179070c6e44ab762bd4c7b9f9bd, type: 3}
+  m_Name: BattleSip
+  m_EditorClassIdentifier: 
+  transportName: Battle Ship
+  model: {fileID: 2951739783136704349, guid: 652790d20c30cdf4fad3fd9458d16fc0, type: 3}
+  transportIcon: {fileID: 21300000, guid: 099c657bfd4bc2c4daa69372a8ad136e, type: 3}
+  transportType: 2
+  heavyWeaponNum: 3
+  mediumWeaponNum: 2
+  lightWeaponNum: 1
+  defenceEquipmentNum: 3
+  auxiliaryEquipmentNum: 3
+  maxHp: 120
+  armor: 5
+  speed: 3
+  load: 120
+  budgetCost: 20
+  developCost: 700
+  maintanceCost: 30
+  produceCost: 1000

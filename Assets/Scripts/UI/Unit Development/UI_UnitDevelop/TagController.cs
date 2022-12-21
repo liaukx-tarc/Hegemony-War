@@ -17,13 +17,13 @@ public class TagController : MonoBehaviour
 
     public bool AddTagFunction(UnitTag tag)
     {
-        if (UI_Controller.accessoriesUI.unitTagsList.Contains(tag))
+        if (WorldController.instance.uiController.accessoriesUI.unitTagsList.Contains(tag))
             return false; //Already have this tag
 
         switch (tag)
         {
             case UnitTag.antiAir:
-                UI_Controller.accessoriesUI.runtimeFunction += AntiAirFunction;
+                WorldController.instance.uiController.accessoriesUI.runtimeFunction += AntiAirFunction;
                 break;
 
             case UnitTag.antiTank:
@@ -35,15 +35,15 @@ public class TagController : MonoBehaviour
                 break;
 
             case UnitTag.sniper:
-                UI_Controller.accessoriesUI.runtimeFunction += SniperFunction;
+                WorldController.instance.uiController.accessoriesUI.runtimeFunction += SniperFunction;
                 break;
 
             case UnitTag.computer:
-                UI_Controller.accessoriesUI.createFunction += ComputerFunction;
+                WorldController.instance.uiController.accessoriesUI.createFunction += ComputerFunction;
                 break;
 
             case UnitTag.testing:
-                UI_Controller.accessoriesUI.createFunction += testFunction;
+                WorldController.instance.uiController.accessoriesUI.createFunction += testFunction;
                 break;
 
             default:
@@ -51,13 +51,13 @@ public class TagController : MonoBehaviour
         }
 
         if (tag != UnitTag.None)
-            UI_Controller.accessoriesUI.unitTagsList.Add(tag);
+            WorldController.instance.uiController.accessoriesUI.unitTagsList.Add(tag);
         return true;
     }
 
     public bool RemoveTagFunction(UnitTag tag)
     {
-        foreach (AccessoryProperty accessory in UI_Controller.accessoriesUI.equipedAccessories)
+        foreach (AccessoryProperty accessory in WorldController.instance.uiController.accessoriesUI.equipedAccessories)
         {
             if (accessory != null && accessory.accessoryTag == tag)
                 return false; //Still have accessory having this tag
@@ -66,7 +66,7 @@ public class TagController : MonoBehaviour
         switch (tag)
         {
             case UnitTag.antiAir:
-                UI_Controller.accessoriesUI.runtimeFunction -= AntiAirFunction;
+                WorldController.instance.uiController.accessoriesUI.runtimeFunction -= AntiAirFunction;
                 break;
 
             case UnitTag.antiTank:
@@ -78,15 +78,15 @@ public class TagController : MonoBehaviour
                 break;
 
             case UnitTag.sniper:
-                UI_Controller.accessoriesUI.runtimeFunction -= SniperFunction;
+                WorldController.instance.uiController.accessoriesUI.runtimeFunction -= SniperFunction;
                 break;
 
             case UnitTag.computer:
-                UI_Controller.accessoriesUI.createFunction -= ComputerFunction;
+                WorldController.instance.uiController.accessoriesUI.createFunction -= ComputerFunction;
                 break;
 
             case UnitTag.testing:
-                UI_Controller.accessoriesUI.createFunction -= testFunction;
+                WorldController.instance.uiController.accessoriesUI.createFunction -= testFunction;
                 break;
 
             default:
@@ -94,7 +94,7 @@ public class TagController : MonoBehaviour
         }
 
         if (tag != UnitTag.None)
-            UI_Controller.accessoriesUI.unitTagsList.Remove(tag);
+            WorldController.instance.uiController.accessoriesUI.unitTagsList.Remove(tag);
         return true;
     }
 

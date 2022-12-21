@@ -17,13 +17,13 @@ MonoBehaviour:
   model: {fileID: 0}
   transportType: 000000000100000002000000
   accessoryTypes: 04000000
-  accessoryTag: 6
+  accessoryTag: 0
   maxHp: 5
   armor: 0
   damage: 2
   range: 0
   speed: 0
-  weight: 20
+  weight: 10
   budgetCost: 3
   developCost: 40
   maintanceCost: 10

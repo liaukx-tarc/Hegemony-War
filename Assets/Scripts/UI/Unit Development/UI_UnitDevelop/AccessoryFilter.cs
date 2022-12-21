@@ -6,23 +6,25 @@ public class AccessoryFilter : MonoBehaviour
 
     public void Filter()
     {
-        foreach (AccessorySelection accessory in UI_Controller.accessoriesUI.accessoriesListAll)
+        foreach (AccessorySelection accessory in WorldController.instance.uiController.accessoriesUI.accessoriesListAll)
         {
             accessory.gameObject.SetActive(false);
         }
 
-        foreach (AccessorySelection accessory in UI_Controller.accessoriesUI.accessoriesListType[(int)type])
+        foreach (AccessorySelection accessory in WorldController.instance.uiController.accessoriesUI.accessoriesListType[(int)type])
         {
-            accessory.gameObject.SetActive(true);
+            if (accessory.property.transportType.Contains(WorldController.instance.uiController.accessoriesUI.transportProperty.transportType))
+                accessory.gameObject.SetActive(true);
         }
 
     }
 
     public void AllFilter()
     {
-        foreach (AccessorySelection accessory in UI_Controller.accessoriesUI.accessoriesListAll)
+        foreach (AccessorySelection accessory in WorldController.instance.uiController.accessoriesUI.accessoriesListAll)
         {
-            accessory.gameObject.SetActive(true);
+            if (accessory.property.transportType.Contains(WorldController.instance.uiController.accessoriesUI.transportProperty.transportType))
+                accessory.gameObject.SetActive(true);
         }
     }
 }

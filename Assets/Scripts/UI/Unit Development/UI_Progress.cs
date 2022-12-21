@@ -49,9 +49,9 @@ public class UI_Progress : MonoBehaviour
 
     public void DisablePlayerProject()
     {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        if (WorldController.instance.currentPlayer.GetType() == typeof(HumanPlayer))
         {
-            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
+            HumanPlayer player = (HumanPlayer)WorldController.instance.currentPlayer;
             foreach (GameObject project in player.projectList)
             {
                 project.SetActive(false);
@@ -61,9 +61,9 @@ public class UI_Progress : MonoBehaviour
 
     public void ActivePlayerProject()
     {
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        if (WorldController.instance.currentPlayer.GetType() == typeof(HumanPlayer))
         {
-            HumanPlayer player = (HumanPlayer)WorldController.currentPlayer;
+            HumanPlayer player = (HumanPlayer)WorldController.instance.currentPlayer;
             foreach (GameObject project in player.projectList)
             {
                 project.SetActive(true);
@@ -76,10 +76,10 @@ public class UI_Progress : MonoBehaviour
         {
             if(selectedProject.developmentCenters.Count < 7)
             {
-                selectedProject.AddDevelopmentCenter(UI_Controller.buildingUIController.selectedCity);
+                selectedProject.AddDevelopmentCenter(WorldController.instance.uiController.buildingUIController.selectedCity);
 
                 isAddingCity = false;
-                WorldController.UI.CloseAllUI();
+                WorldController.instance.uiController.CloseAllUI();
             }
             
             else
@@ -91,9 +91,9 @@ public class UI_Progress : MonoBehaviour
         else
         {
             gameObject.SetActive(false);
-            UI_Controller.accessoriesUI.gameObject.SetActive(true);
+            WorldController.instance.uiController.accessoriesUI.gameObject.SetActive(true);
 
-            UI_Controller.accessoriesUI.showTemplateDetail(selectedProject.unitProperty);
+            WorldController.instance.uiController.accessoriesUI.showTemplateDetail(selectedProject.unitProperty);
         }
         
     }
@@ -142,7 +142,7 @@ public class UI_Progress : MonoBehaviour
             }
         }
 
-        unitTagsList.Sort(UI_AccessoriesEquip.CompareListByUnitTag);
+        unitTagsList.Sort(WorldController.instance.uiController.accessoriesUI.CompareListByUnitTag);
         for (int i = 0; i < tagTextList.Count; i++)
         {
             if (i < unitTagsList.Count)
@@ -178,5 +178,24 @@ public class UI_Progress : MonoBehaviour
                 developmentCenterSlotList[i].gameObject.SetActive(false);
             }
         }
+    }
+
+    public void CancelProject()
+    {
+        do
+        {
+            selectedProject.RemoveDevelopmentCenter(selectedProject.developmentCenters[0]);
+
+        } while (selectedProject.developmentCenters.Count > 0);
+
+
+        selectedProject.player.projectList.Remove(selectedProject.gameObject);
+        selectedProject.player.playerStartFunction -= selectedProject.ProjectCompleteCheck;
+        WorldController.instance.playerStartFunction -= selectedProject.ProjectCompleteCheck;
+        
+        Destroy(selectedProject.gameObject);
+        selectedProject = null;
+
+        infoPanel.SetActive(false);
     }
 }

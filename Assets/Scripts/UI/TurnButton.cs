@@ -18,7 +18,7 @@ public class TurnButton : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (WorldController.activeUnitList.Count != 0)
+        if (WorldController.instance.activeUnitList.Count > 0)
         {
             ColorBlock turnBtnColors = turnBtn.colors;
             turnBtnColors.normalColor = turnBtnColors.disabledColor = turnBtnColors.selectedColor = turnBtnColors.pressedColor = activeColor;
@@ -43,6 +43,6 @@ public class TurnButton : MonoBehaviour
 
     public void ChangeTurnText()
     {
-        turnTxt.text = "TURN " + WorldController.turn;
+        turnTxt.text = "TURN " + WorldController.instance.turn;
     }
 }

@@ -13,31 +13,31 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (DragObj.isDraging)
+        if (WorldController.instance.uiController.accessoriesUI.dragObj.isDraging)
         {
-            if(equitAccessory(DragObj.accessory.property))
+            if(equitAccessory(WorldController.instance.uiController.accessoriesUI.dragObj.accessory.property))
             {
-                DragObj.isDraging = false;
-                DragObj.image.gameObject.SetActive(false);
+                WorldController.instance.uiController.accessoriesUI.dragObj.isDraging = false;
+                WorldController.instance.uiController.accessoriesUI.dragObj.image.gameObject.SetActive(false);
             }
         }
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (Input.GetMouseButtonDown(0) && DragObj.isDraging)
+        if (Input.GetMouseButtonDown(0) && WorldController.instance.uiController.accessoriesUI.dragObj.isDraging)
         {
-            if(equitAccessory(DragObj.accessory.property))
+            if(equitAccessory(WorldController.instance.uiController.accessoriesUI.dragObj.accessory.property))
             {
-                DragObj.isDraging = false;
-                DragObj.image.gameObject.SetActive(false);
+                WorldController.instance.uiController.accessoriesUI.dragObj.isDraging = false;
+                WorldController.instance.uiController.accessoriesUI.dragObj.image.gameObject.SetActive(false);
             }
         }
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (Input.GetMouseButtonUp(1) && isEquip && UI_AccessoriesEquip.accessorySlotState)
+        if (Input.GetMouseButtonUp(1) && isEquip && WorldController.instance.uiController.accessoriesUI.accessorySlotState)
         {
             removeAccessory();
         }
@@ -48,7 +48,7 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
         if (isEquip)
             removeAccessory();
 
-        if(UI_Controller.accessoriesUI.weight + accessory.weight > UI_Controller.accessoriesUI.transportProperty.load)
+        if(WorldController.instance.uiController.accessoriesUI.weight + accessory.weight > WorldController.instance.uiController.accessoriesUI.transportProperty.load)
         {
             StartCoroutine(redEffect());
             return false; //transport overload
@@ -59,7 +59,7 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
             if (accessoryType == type)
             {
                 this.accessory = accessory;
-                UI_Controller.accessoriesUI.equipAccessory(accessory, slotIndex);
+                WorldController.instance.uiController.accessoriesUI.equipAccessory(accessory, slotIndex);
                 showingIcon.sprite = accessory.icon;
                 showingIcon.enabled = true;
                 isEquip = true;
@@ -72,15 +72,15 @@ public class AccessorySlot : MonoBehaviour, IDropHandler, IPointerUpHandler, IPo
 
     public void removeAccessory()
     {
-        UI_Controller.accessoriesUI.removeAccessory(accessory, slotIndex);
+        WorldController.instance.uiController.accessoriesUI.removeAccessory(accessory, slotIndex);
         showingIcon.enabled = false;
         isEquip = false;
     }
 
     IEnumerator redEffect()
     {
-        UI_Controller.accessoriesUI.weightText.color = Color.red;
+        WorldController.instance.uiController.accessoriesUI.weightText.color = Color.red;
         yield return new WaitForSeconds(0.5f);
-        UI_Controller.accessoriesUI.weightText.color = Color.white;
+        WorldController.instance.uiController.accessoriesUI.weightText.color = Color.white;
     }
 }

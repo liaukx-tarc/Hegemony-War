@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1541b179070c6e44ab762bd4c7b9f9bd, type: 3}
+  m_Name: Destroyers
+  m_EditorClassIdentifier: 
+  transportName: Destroyers
+  model: {fileID: 2951739783136704349, guid: 652790d20c30cdf4fad3fd9458d16fc0, type: 3}
+  transportIcon: {fileID: 21300000, guid: 4ca3db81395acb540b899f6c6dace804, type: 3}
+  transportType: 2
+  heavyWeaponNum: 1
+  mediumWeaponNum: 3
+  lightWeaponNum: 1
+  defenceEquipmentNum: 2
+  auxiliaryEquipmentNum: 1
+  maxHp: 50
+  armor: 2
+  speed: 7
+  load: 60
+  budgetCost: 12
+  developCost: 400
+  maintanceCost: 20
+  produceCost: 650

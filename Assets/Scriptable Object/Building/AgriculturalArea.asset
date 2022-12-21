@@ -20,7 +20,7 @@ MonoBehaviour:
   buildingType: 1
   buildingRange: 1
   produceCost: 150
-  maintenanceCost: 5
+  maintenanceCost: 15
   healthPoint: 100
   defense: 10
   damage: 0

@@ -48,4 +48,9 @@ public class UnitProperty : ScriptableObject
             this.accessoryProperty[i] = accessoryProperty[i];
         }
     }
+
+    public void Create(Sprite icon)
+    {
+        unitIcon = icon;
+    }
 }

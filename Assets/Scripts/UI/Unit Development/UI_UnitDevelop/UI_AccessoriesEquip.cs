@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class UI_AccessoriesEquip : MonoBehaviour
 {
+    public DragObj dragObj;
+
     [Header("Accessory List")]
     public List<AccessoryProperty> accessoriesList;
     public GameObject accessoryListObj;
@@ -109,7 +111,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
     }
 
     //Sort by name funtion
-    private static int CompareListByName(AccessorySelection i1, AccessorySelection i2)
+    private int CompareListByName(AccessorySelection i1, AccessorySelection i2)
     {
         return i1.gameObject.name.CompareTo(i2.gameObject.name);
     }
@@ -170,7 +172,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
     const string Modify = "Modify";
     const string Upgrade = "Upgrade";
 
-    public static bool accessorySlotState = true;
+    public bool accessorySlotState = true;
 
 
     public void UIOpen(City city, ProjectType projectType, TransportType transportType, UnitTemplate originalTemplate)
@@ -190,7 +192,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
                 createBtnBackground.color = createColor;
                 createBtnText.text = Create;
 
-                unitName = unitNameInput.text = WorldController.currentPlayer.name + " Unit " + WorldController.currentPlayer.projectCount; ;
+                unitName = unitNameInput.text = WorldController.instance.currentPlayer.playerName + " Unit " + WorldController.instance.currentPlayer.projectCount; ;
                 unitNameInput.interactable = true;
                 accessoriesPanel.SetActive(true);
                 break;
@@ -279,12 +281,10 @@ public class UI_AccessoriesEquip : MonoBehaviour
     [Header("Transport")]
     public TransportDropdown transportDropdown;
     public TransportProperty transportProperty;
-   
+    public Image modelImage;
     public void ChangeAccessoriesSelect(TransportType transportType, bool accessoriesSlectState)
     {
         filterButton.SetActive(accessoriesSlectState);
-
-        bool tagMatch;
 
         foreach (AccessorySelection accessorySelection in accessoriesListAll)
         {
@@ -294,26 +294,23 @@ public class UI_AccessoriesEquip : MonoBehaviour
                 continue;
             }
 
-            tagMatch = false;
 
-            foreach (TransportType transport in accessorySelection.property.transportType)
+            if (accessorySelection.property.transportType.Contains(transportType))
             {
-                if (transport == transportType)
-                {
-                    accessorySelection.gameObject.SetActive(true);
-                    tagMatch = true;
-                    break;
-                }
+                accessorySelection.gameObject.SetActive(true);
             }
 
-            if (!tagMatch)
+            else
+            {
                 accessorySelection.gameObject.SetActive(false);
+            }
         }
     }
 
     public void ChangeTransport(TransportProperty transport)
     {
         transportProperty = transport;
+        modelImage.sprite = transport.transportIcon;
         unitNameInput.interactable = true;
 
         for (int i = 0; i < heavyWeaponSlots.Length; i++)
@@ -671,7 +668,7 @@ public class UI_AccessoriesEquip : MonoBehaviour
         }
     }
 
-    public static int CompareListByUnitTag(UnitTag i1, UnitTag i2)
+    public int CompareListByUnitTag(UnitTag i1, UnitTag i2)
     {
         return i1.CompareTo(i2);
     }
@@ -679,45 +676,44 @@ public class UI_AccessoriesEquip : MonoBehaviour
     [Header("CreateProject")]
     public GameObject projectPrefab;
     public Transform projectList;
-    public Sprite defualtIcon;
 
     UnitProperty unitProperty;
 
     public void CreateProject()
     {
         unitProperty = ScriptableObject.CreateInstance<UnitProperty>();
-        unitProperty.Create(unitName, defualtIcon, finalMaxHp, finalArmor, finalDamage, range, speed, weight, finalBudgetCost, finalDevelopCost, finalMaintanceCost, finalProduceCost, transportProperty, equipedAccessories, slotsCount);
+        unitProperty.Create(unitName, transportProperty.transportIcon, finalMaxHp, finalArmor, finalDamage, range, speed, weight, finalBudgetCost, finalDevelopCost, finalMaintanceCost, finalProduceCost, transportProperty, equipedAccessories, slotsCount);
 
         GameObject tempProject = Instantiate(projectPrefab, projectList);
         projectName = unitName + " Project";
 
-        if (WorldController.currentPlayer.GetType() == typeof(HumanPlayer))
+        if (WorldController.instance.currentPlayer.GetType() == typeof(HumanPlayer))
         {
-            HumanPlayer humanPlayer = (HumanPlayer)WorldController.currentPlayer;
+            HumanPlayer humanPlayer = (HumanPlayer)WorldController.instance.currentPlayer;
             humanPlayer.projectList.Add(tempProject);
         }
 
         switch (projectType)
         {
             case ProjectType.UnitDevelopment:
-                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitProperty, runtimeFunction);
-                WorldController.currentPlayer.projectCount++;
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.instance.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, null, unitProperty, runtimeFunction);
+                WorldController.instance.currentPlayer.projectCount++;
                 break;
 
             case ProjectType.UnitModify:
-                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction);
-                WorldController.currentPlayer.projectCount++;
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.instance.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction);
+                WorldController.instance.currentPlayer.projectCount++;
                 break;
 
             case ProjectType.UnitUpgrade:
-                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction);
+                tempProject.GetComponent<UnitDevelopmentProject>().ProjectCreate(WorldController.instance.currentPlayer, city, projectType, projectName, finalBudgetCost, finalDevelopCost, originalTemplate, unitProperty, runtimeFunction);
                 break;
 
             default:
                 break;
         }
 
-        WorldController.UI.CloseAllUI();
+        WorldController.instance.uiController.CloseAllUI();
     }
 
     public string unitName;

@@ -22,16 +22,17 @@ public class BuildingSelection : MonoBehaviour
 
     public void onClick()
     {
-        City city = (City)PlayerController.selectedBuilding;
+        WorldController.instance.uiController.ClickSound();
+        City city = (City)WorldController.instance.playerController.selectedBuilding;
 
         if (city.producingArea == null && city.producingUnit == null)
         {
-            WorldController.playerController.BuildArea(building);
+            WorldController.instance.playerController.BuildArea(building);
         }
 
         else
         {
-            StartCoroutine(UI_Controller.buildingUIController.AddProduceFail());
+            StartCoroutine(WorldController.instance.uiController.buildingUIController.AddProduceFail());
         }
 
     }

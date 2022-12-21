@@ -3,12 +3,10 @@ using UnityEngine.UI;
 
 public class DragObj : MonoBehaviour
 {
-    const string Cancel = "Cancel";
-
-    public static bool isDraging = false;
-    public static Image image;
-    public static RectTransform rectTransform;
-    public static AccessorySelection accessory;
+    public bool isDraging = false;
+    public Image image;
+    public RectTransform rectTransform;
+    public AccessorySelection accessory;
   
 
     public void Start()

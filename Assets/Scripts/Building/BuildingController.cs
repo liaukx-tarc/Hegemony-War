@@ -25,6 +25,9 @@ public class BuildingController : MonoBehaviour
     public BuildingProperty selectingBuilding;
     public BuildingProperty cityProperty;
 
+    [Header("Building HP Restore")]
+    public int restoreHP;
+
     public void StartBuilding(BuildingProperty building)
     {
         modelObject = Instantiate(building.model);
@@ -64,7 +67,7 @@ public class BuildingController : MonoBehaviour
             city.controlledCellList.Add(cell);
         }
 
-        WorldController.currentPlayer.cityList.Add(city);
+        WorldController.instance.currentPlayer.cityList.Add(city);
         city.CreateBuilding(cityModel.GetComponent<Renderer>(), cityModel.GetComponent<Collider>(), cityProperty, belongCell);
     }
 
@@ -103,9 +106,22 @@ public class BuildingController : MonoBehaviour
         areaModel.SetActive(true);
 
         Area area = tempObj.GetComponent<Area>();
+        area.player = belongCity.player;
+        area.belongCity = belongCity;
+        area.CreateBuilding(areaModel.GetComponent<Renderer>(), areaModel.GetComponent<Collider>(), areaProperty, belongCell);
+
+        switch (areaProperty.buildingType)
+        {
+            case BuildingType.MilitaryBase:
+            case BuildingType.NavalBase:
+            case BuildingType.AirForceBase:
+                belongCity.currentHp += area.buildingProperty.healthPoint;
+                belongCity.slider.value = belongCity.currentHp;
+                break;
+        }
+
         belongCell.building = area;
         belongCell.mapObjectList.Add(area);
-        belongCell.building.CreateBuilding(areaModel.GetComponent<Renderer>(), areaModel.GetComponent<Collider>(), areaProperty, belongCell, belongCity);
 
         belongCity.areaList.Add(area);
     }
@@ -133,35 +149,35 @@ public class BuildingController : MonoBehaviour
 
             if (cellsInRange[i].mapType == (int)MapTypeName.Marsh)
             {
-                cellResourceAmount += 3;
-                resourceIcon = foodIcon;
-                resourceColor = foodColor;
+                cellResourceAmount += 5;
+                resourceIcon = productivityIcon;
+                resourceColor = productivityColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Plain || cellsInRange[i].mapType == (int)MapTypeName.Coast)
             {
-                cellResourceAmount += 2;
-                resourceIcon = foodIcon;
-                resourceColor = foodColor;
+                cellResourceAmount += 5;
+                resourceIcon = moneyIcon;
+                resourceColor = moneyColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Snow)
             {
-                cellResourceAmount += 1;
-                resourceIcon = foodIcon;
-                resourceColor = foodColor;
+                cellResourceAmount += 5;
+                resourceIcon = developmentPointIcon;
+                resourceColor = developmentPointColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
             {
-                cellResourceAmount += 2;
+                cellResourceAmount += 7;
                 resourceIcon = moneyIcon;
                 resourceColor = moneyColor;
             }
 
             else if (cellsInRange[i].mapType == (int)MapTypeName.Forest)
             { 
-                cellResourceAmount += 2;
+                cellResourceAmount += 10;
                 resourceIcon = productivityIcon;
                 resourceColor = productivityColor;
             }
@@ -169,15 +185,16 @@ public class BuildingController : MonoBehaviour
 
             if(cellResourceAmount > 0)
             {
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], cellResourceAmount.ToString(), resourceIcon, resourceColor);
+                ActiveResourceText(WorldController.instance.playerController.blueSelectCellList[i], cellResourceAmount.ToString(), resourceIcon, resourceColor);
             }
 
             else
             {
-                WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                WorldController.instance.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
             }
 
-            WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+            WorldController.instance.playerController.blueSelectCellList[i].turnUI.SetActive(false);
+            WorldController.instance.playerController.ActiveSelectCell(WorldController.instance.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
         }
 
         //Move Model
@@ -217,217 +234,222 @@ public class BuildingController : MonoBehaviour
         {
             cellResourceAmount = 0;
 
-            switch (selectingBuilding.buildingType)
+            if (cellsInRange[i].belongCity == null || 
+                (cellsInRange[i].belongCity != null && cellsInRange[i].belongCity.player == WorldController.instance.playerController.selectedBuilding.player))
             {
-                case BuildingType.AgriculturalArea:
-                    if (cellsInRange[i].building != null && 
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AgriculturalArea)
-                    {
-                        cellResourceAmount += 5;
-                    }
+                switch (selectingBuilding.buildingType)
+                {
+                    //case BuildingType.AgriculturalArea:
+                    //    if (cellsInRange[i].building != null && 
+                    //        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AgriculturalArea)
+                    //    {
+                    //        cellResourceAmount += 5;
+                    //    }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Marsh)
-                    {
-                        cellResourceAmount += 3;
-                    }
+                    //    if (cellsInRange[i].mapType == (int)MapTypeName.Marsh)
+                    //    {
+                    //        cellResourceAmount += 3;
+                    //    }
 
-                    else if (cellsInRange[i].mapType == (int)MapTypeName.Plain || cellsInRange[i].mapType == (int)MapTypeName.Coast)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                    //    else if (cellsInRange[i].mapType == (int)MapTypeName.Plain || cellsInRange[i].mapType == (int)MapTypeName.Coast)
+                    //    {
+                    //        cellResourceAmount += 2;
+                    //    }
 
-                    else if (cellsInRange[i].mapType == (int)MapTypeName.Snow)
-                    {
-                        cellResourceAmount += 1;
-                    }
+                    //    else if (cellsInRange[i].mapType == (int)MapTypeName.Snow)
+                    //    {
+                    //        cellResourceAmount += 1;
+                    //    }
 
-                    resourceIcon = foodIcon;
-                    resourceColor = foodColor;
-                    break;
+                    //    resourceIcon = foodIcon;
+                    //    resourceColor = foodColor;
+                    //    break;
 
-                case BuildingType.ResearchCenter:
-                    if (cellsInRange[i].building != null && 
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.ResearchCenter)
-                    { 
-                        cellResourceAmount += 5;
-                    }
+                    //case BuildingType.ResearchCenter:
+                    //    if (cellsInRange[i].building != null && 
+                    //        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.ResearchCenter)
+                    //    { 
+                    //        cellResourceAmount += 5;
+                    //    }
 
-                    resourceIcon = sciencePointIcon;
-                    resourceColor = sciencePointColor;
-                    break;
+                    //    resourceIcon = sciencePointIcon;
+                    //    resourceColor = sciencePointColor;
+                    //    break;
 
-                case BuildingType.IndustrialArea:
-                    if (cellsInRange[i].building != null && 
-                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.IndustrialArea)
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.IndustrialArea:
+                        if (cellsInRange[i].building != null &&
+                            cellsInRange[i].building.buildingProperty.buildingType == BuildingType.IndustrialArea)
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Forest)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Forest || cellsInRange[i].mapType == (int)MapTypeName.Marsh)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
-                    resourceIcon = productivityIcon;
-                    resourceColor = productivityColor;
-                    break;
+                        resourceIcon = productivityIcon;
+                        resourceColor = productivityColor;
+                        break;
 
-                case BuildingType.CommercialCenter:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.CommercialCenter:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Desert || cellsInRange[i].mapType == (int)MapTypeName.Plain)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
-                    resourceIcon = moneyIcon;
-                    resourceColor = moneyColor;
-                    break;
+                        resourceIcon = moneyIcon;
+                        resourceColor = moneyColor;
+                        break;
 
-                case BuildingType.Harbor:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.Harbor:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
-                    resourceIcon = moneyIcon;
-                    resourceColor = moneyColor;
-                    break;
+                        resourceIcon = moneyIcon;
+                        resourceColor = moneyColor;
+                        break;
 
-                case BuildingType.Airport:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
-                    {
-                        cellResourceAmount += 10;
-                    }
+                    case BuildingType.Airport:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.CommercialCenter ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Harbor ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.Airport))
+                        {
+                            cellResourceAmount += 20;
+                        }
 
-                    resourceIcon = moneyIcon;
-                    resourceColor = moneyColor;
-                    break;
+                        resourceIcon = moneyIcon;
+                        resourceColor = moneyColor;
+                        break;
 
-                case BuildingType.MilitaryBase:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.MilitaryBase:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Plain)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Plain || cellsInRange[i].mapType == (int)MapTypeName.Marsh)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
-                    resourceIcon = productivityIcon;
-                    resourceColor = productivityColor;
-                    break;
+                        resourceIcon = productivityIcon;
+                        resourceColor = productivityColor;
+                        break;
 
-                case BuildingType.NavalBase:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.NavalBase:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
 
-                    resourceIcon = productivityIcon;
-                    resourceColor = productivityColor;
-                    break;
+                        resourceIcon = productivityIcon;
+                        resourceColor = productivityColor;
+                        break;
 
-                case BuildingType.AirForceBase:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
-                    {
-                        cellResourceAmount += 10;
-                    }
+                    case BuildingType.AirForceBase:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryBase ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalBase ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.AirForceBase))
+                        {
+                            cellResourceAmount += 20;
+                        }
 
-                    resourceIcon = productivityIcon;
-                    resourceColor = productivityColor;
-                    break;
+                        resourceIcon = productivityIcon;
+                        resourceColor = productivityColor;
+                        break;
 
-                case BuildingType.MilitaryFactory:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.MilitaryFactory:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Desert)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Desert || cellsInRange[i].mapType == (int)MapTypeName.Snow)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
-                    resourceIcon = developmentPointIcon;
-                    resourceColor = developmentPointColor;
-                    break;
+                        resourceIcon = developmentPointIcon;
+                        resourceColor = developmentPointColor;
+                        break;
 
-                case BuildingType.NavalShipyard:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
-                    {
-                        cellResourceAmount += 5;
-                    }
+                    case BuildingType.NavalShipyard:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
+                        {
+                            cellResourceAmount += 10;
+                        }
 
-                    if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
-                    {
-                        cellResourceAmount += 2;
-                    }
+                        if (cellsInRange[i].mapType == (int)MapTypeName.Coast || cellsInRange[i].mapType == (int)MapTypeName.Ocean)
+                        {
+                            cellResourceAmount += 3;
+                        }
 
-                    resourceIcon = developmentPointIcon;
-                    resourceColor = developmentPointColor;
-                    break;
+                        resourceIcon = developmentPointIcon;
+                        resourceColor = developmentPointColor;
+                        break;
 
-                case BuildingType.FlightTestCenter:
-                    if (cellsInRange[i].building != null &&
-                    (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
-                    cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
-                    {
-                        cellResourceAmount += 10;
-                    }
+                    case BuildingType.FlightTestCenter:
+                        if (cellsInRange[i].building != null &&
+                        (cellsInRange[i].building.buildingProperty.buildingType == BuildingType.MilitaryFactory ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.NavalShipyard ||
+                        cellsInRange[i].building.buildingProperty.buildingType == BuildingType.FlightTestCenter))
+                        {
+                            cellResourceAmount += 20;
+                        }
 
-                    resourceIcon = developmentPointIcon;
-                    resourceColor = developmentPointColor;
-                    break;
+                        resourceIcon = developmentPointIcon;
+                        resourceColor = developmentPointColor;
+                        break;
+                }
             }
 
             if (cellResourceAmount > 0)
-                ActiveResourceText(WorldController.playerController.blueSelectCellList[i], cellResourceAmount.ToString(), resourceIcon, resourceColor);
+                ActiveResourceText(WorldController.instance.playerController.blueSelectCellList[i], cellResourceAmount.ToString(), resourceIcon, resourceColor);
 
             else
-                WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+                WorldController.instance.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
 
-            WorldController.playerController.ActiveSelectCell(WorldController.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
+            WorldController.instance.playerController.blueSelectCellList[i].turnUI.SetActive(false);
+            WorldController.instance.playerController.ActiveSelectCell(WorldController.instance.playerController.blueSelectCellList[i].gameObject, cellsInRange[i].transform);
         }
 
         //Move Model
@@ -438,8 +460,6 @@ public class BuildingController : MonoBehaviour
 
     void ActiveResourceText(SelectionCell selectionCell, string resourceAmount, Sprite resourceIcon, Color color)
     {
-        selectionCell.turnUI.SetActive(false);
-
         selectionCell.resourceText.text = resourceAmount;
         selectionCell.resourceIcon.sprite = resourceIcon;
         selectionCell.resourceIcon.color = color;
@@ -450,8 +470,8 @@ public class BuildingController : MonoBehaviour
     {
         for (int i = 0; i < inRangeCellNum; i++)
         {
-            WorldController.playerController.blueSelectCellList[i].gameObject.SetActive(false);
-            WorldController.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
+            WorldController.instance.playerController.blueSelectCellList[i].gameObject.SetActive(false);
+            WorldController.instance.playerController.blueSelectCellList[i].resourceText.transform.parent.gameObject.SetActive(false);
         }
     }
 

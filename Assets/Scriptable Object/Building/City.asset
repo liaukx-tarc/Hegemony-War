@@ -20,12 +20,12 @@ MonoBehaviour:
   buildingType: 0
   buildingRange: 3
   produceCost: 0
-  maintenanceCost: 0
+  maintenanceCost: 50
   healthPoint: 100
   defense: 10
   damage: 20
   money: 0
   food: 0
-  productivity: 200
+  productivity: 50
   sciencePoint: 0
   developmentPoint: 0

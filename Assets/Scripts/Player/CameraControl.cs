@@ -36,7 +36,7 @@ public class CameraControl : MonoBehaviour
     private void Update()
     {
         hitInfo = new RaycastHit();
-        if(!UI_Controller.isUIOpen)
+        if(!WorldController.instance.uiController.isUIOpen)
         {
             //Check Middle Cell
             if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hitInfo, 100, LayerMask.GetMask(MapTag)))
@@ -85,7 +85,7 @@ public class CameraControl : MonoBehaviour
                 this.transform.position += Vector3.forward * cameraSpeed * Time.deltaTime;
             }
 
-            if (Input.GetButton(CameraDown) && currentMiddleCell.position.y != WorldController.mapSize.y - 1)
+            if (Input.GetButton(CameraDown) && currentMiddleCell.position.y != WorldController.instance.mapSize.y - 1)
             {
                 curMovedDis.y += cameraSpeed * Time.deltaTime;
                 this.transform.position += Vector3.back * cameraSpeed * Time.deltaTime;
@@ -147,16 +147,17 @@ public class CameraControl : MonoBehaviour
 
         MapCell cell;
 
-        for (int x = 0; x < WorldController.mapSize.x; x++)
+        for (int x = 0; x < WorldController.instance.mapSize.x; x++)
         {
-            for (int y = 0; y < WorldController.mapSize.y; y++)
+            for (int y = 0; y < WorldController.instance.mapSize.y; y++)
             {
-                cell = WorldController.map[x, y];
+                cell = WorldController.instance.map[x, y];
                 cell.gameObject.SetActive(false);
 
                 foreach (MapObject mapObject in cell.mapObjectList)
                 {
                     mapObject.rendererCpn.enabled = false;
+                    mapObject.slider.transform.parent.gameObject.SetActive(false);
                 }
             }
         }
@@ -173,6 +174,7 @@ public class CameraControl : MonoBehaviour
                 foreach (MapObject mapObject in tempCell.mapObjectList)
                 {
                     mapObject.rendererCpn.enabled = false;
+                    mapObject.slider.transform.parent.gameObject.SetActive(false);
                 }
 
                 tempCell.gameObject.SetActive(false);
@@ -191,16 +193,16 @@ public class CameraControl : MonoBehaviour
 
                 //let the map connect together horizontally
                 if (x < 0)
-                    x += (int)WorldController.mapSize.x;
-                else if (x >= WorldController.mapSize.x)
-                    x -= (int)WorldController.mapSize.x;
+                    x += (int)WorldController.instance.mapSize.x;
+                else if (x >= WorldController.instance.mapSize.x)
+                    x -= (int)WorldController.instance.mapSize.x;
 
 
                 if (!isCulled)
                 {
-                    for (int i = 0; i < WorldController.mapSize.y; i++)
+                    for (int i = 0; i < WorldController.instance.mapSize.y; i++)
                     {
-                        cell = WorldController.map[x, i];
+                        cell = WorldController.instance.map[x, i];
                         cell.transform.position = new Vector3((w * 2f) - (Mathf.Abs(i) % 2f), 0.0f, i * -1.75f);
 
                         foreach (MapObject mapObject in cell.mapObjectList)
@@ -214,14 +216,15 @@ public class CameraControl : MonoBehaviour
                     isCulled = true;
                 }
 
-                if (y >= 0 && y < WorldController.mapSize.y)
+                if (y >= 0 && y < WorldController.instance.mapSize.y)
                 {
-                    cell = WorldController.map[x, y];
+                    cell = WorldController.instance.map[x, y];
                     cell.gameObject.SetActive(true);
 
                     foreach (MapObject mapObject in cell.mapObjectList)
                     {
                         mapObject.rendererCpn.enabled = true;
+                        mapObject.slider.transform.parent.gameObject.SetActive(true);
                     }
 
                     displayMap[w + halfDisplayX, h + halfDisplayY] = cell;
@@ -257,6 +260,7 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
+                                    mapObject.slider.transform.parent.gameObject.SetActive(false);
                                 }
                             }
 
@@ -270,12 +274,13 @@ public class CameraControl : MonoBehaviour
                             {
                                 if (displayMap[x, y].position.y - 1 >= 0)
                                 {
-                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y - 1];
+                                    displayMap[x, y] = WorldController.instance.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y - 1];
                                     displayMap[x, y].gameObject.SetActive(true);
 
                                     foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                     {
                                         mapObject.rendererCpn.enabled = true;
+                                        mapObject.slider.transform.parent.gameObject.SetActive(true);
                                     }
                                 }
 
@@ -308,6 +313,7 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
+                                    mapObject.slider.transform.parent.gameObject.SetActive(false);
                                 }
                             }
 
@@ -318,14 +324,15 @@ public class CameraControl : MonoBehaviour
                         {
                             if (displayMap[x, y] != null)
                             {
-                                if (displayMap[x, y].position.y + 1 < WorldController.mapSize.y)
+                                if (displayMap[x, y].position.y + 1 < WorldController.instance.mapSize.y)
                                 {
-                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y + 1];
+                                    displayMap[x, y] = WorldController.instance.map[(int)displayMap[x, y].position.x, (int)displayMap[x, y].position.y + 1];
                                     displayMap[x, y].gameObject.SetActive(true);
 
                                     foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                     {
                                         mapObject.rendererCpn.enabled = true;
+                                        mapObject.slider.transform.parent.gameObject.SetActive(true);
                                     }
                                 }
 
@@ -361,6 +368,7 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
+                                    mapObject.slider.transform.parent.gameObject.SetActive(false);
                                 }
                             }
 
@@ -374,12 +382,12 @@ public class CameraControl : MonoBehaviour
                             {
                                 if (displayMap[x, y].position.x - 1 >= 0)
                                 {
-                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x - 1, (int)displayMap[x, y].position.y];
+                                    displayMap[x, y] = WorldController.instance.map[(int)displayMap[x, y].position.x - 1, (int)displayMap[x, y].position.y];
                                 }
 
                                 else
                                 {
-                                    displayMap[x, y] = WorldController.map[(int)WorldController.mapSize.x - 1, (int)displayMap[x, y].position.y];
+                                    displayMap[x, y] = WorldController.instance.map[(int)WorldController.instance.mapSize.x - 1, (int)displayMap[x, y].position.y];
                                     if (y == halfDisplayY)
                                         culledCount--;
                                 }
@@ -387,13 +395,13 @@ public class CameraControl : MonoBehaviour
                                 if (!isCulled)
                                 {
                                     int mapX = (int)displayMap[x, y].position.x + 1;
-                                    if (mapX == WorldController.mapSize.x)
+                                    if (mapX == WorldController.instance.mapSize.x)
                                         mapX = 0;
 
-                                    for (int i = 0; i < WorldController.mapSize.y; i++)
+                                    for (int i = 0; i < WorldController.instance.mapSize.y; i++)
                                     {
-                                        tempCell = WorldController.map[(int)displayMap[x, y].position.x, i];
-                                        tempCell.transform.position = WorldController.map[mapX, i].transform.position + Vector3.left * 2;
+                                        tempCell = WorldController.instance.map[(int)displayMap[x, y].position.x, i];
+                                        tempCell.transform.position = WorldController.instance.map[mapX, i].transform.position + Vector3.left * 2;
 
                                         foreach (MapObject mapObject in tempCell.mapObjectList)
                                         {
@@ -411,6 +419,7 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = true;
+                                    mapObject.slider.transform.parent.gameObject.SetActive(true);
                                 }
                             }
 
@@ -445,6 +454,7 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = false;
+                                    mapObject.slider.transform.parent.gameObject.SetActive(false);
                                 }
                             }
 
@@ -456,14 +466,14 @@ public class CameraControl : MonoBehaviour
                         {
                             if (displayMap[x, y] != null)
                             {
-                                if (displayMap[x, y].position.x + 1 < WorldController.mapSize.x)
+                                if (displayMap[x, y].position.x + 1 < WorldController.instance.mapSize.x)
                                 {
-                                    displayMap[x, y] = WorldController.map[(int)displayMap[x, y].position.x + 1, (int)displayMap[x, y].position.y];
+                                    displayMap[x, y] = WorldController.instance.map[(int)displayMap[x, y].position.x + 1, (int)displayMap[x, y].position.y];
                                 }
 
                                 else
                                 {
-                                    displayMap[x, y] = WorldController.map[0, (int)displayMap[x, y].position.y];
+                                    displayMap[x, y] = WorldController.instance.map[0, (int)displayMap[x, y].position.y];
                                     if (y == halfDisplayY)
                                         culledCount++;
                                 }
@@ -472,12 +482,12 @@ public class CameraControl : MonoBehaviour
                                 {
                                     int mapX = (int)displayMap[x, y].position.x - 1;
                                     if (mapX == -1)
-                                        mapX = (int)WorldController.mapSize.x - 1;
+                                        mapX = (int)WorldController.instance.mapSize.x - 1;
 
-                                    for (int i = 0; i < WorldController.mapSize.y; i++)
+                                    for (int i = 0; i < WorldController.instance.mapSize.y; i++)
                                     {
-                                        tempCell = WorldController.map[(int)displayMap[x, y].position.x, i];
-                                        tempCell.transform.position = WorldController.map[mapX, i].transform.position + Vector3.right * 2;
+                                        tempCell = WorldController.instance.map[(int)displayMap[x, y].position.x, i];
+                                        tempCell.transform.position = WorldController.instance.map[mapX, i].transform.position + Vector3.right * 2;
 
                                         foreach (MapObject mapObject in tempCell.mapObjectList)
                                         {
@@ -495,6 +505,7 @@ public class CameraControl : MonoBehaviour
                                 foreach (MapObject mapObject in displayMap[x, y].mapObjectList)
                                 {
                                     mapObject.rendererCpn.enabled = true;
+                                    mapObject.slider.transform.parent.gameObject.SetActive(true);
                                 }
                             }
 

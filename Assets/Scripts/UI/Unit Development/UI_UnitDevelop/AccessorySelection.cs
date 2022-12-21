@@ -7,14 +7,15 @@ public class AccessorySelection : MonoBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if(Input.GetMouseButtonDown(0))
+        WorldController.instance.uiController.ClickSound();
+        if (Input.GetMouseButtonDown(0))
         {
-            DragObj.rectTransform.position = Input.mousePosition;
-            DragObj.image.sprite = property.icon;
-            DragObj.accessory = this;
+            WorldController.instance.uiController.accessoriesUI.dragObj.rectTransform.position = Input.mousePosition;
+            WorldController.instance.uiController.accessoriesUI.dragObj.image.sprite = property.icon;
+            WorldController.instance.uiController.accessoriesUI.dragObj.accessory = this;
 
-            DragObj.image.gameObject.SetActive(true);
-            DragObj.isDraging = true;
+            WorldController.instance.uiController.accessoriesUI.dragObj.image.gameObject.SetActive(true);
+            WorldController.instance.uiController.accessoriesUI.dragObj.isDraging = true;
         }
     }
 

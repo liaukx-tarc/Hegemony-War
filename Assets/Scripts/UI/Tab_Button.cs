@@ -19,6 +19,7 @@ public class Tab_Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        WorldController.instance.uiController.ClickSound();
         tabGroup.OnTabButtonSelected(this);
         action.Invoke();
     }

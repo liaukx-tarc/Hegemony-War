@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum AccessoriesTypes
@@ -20,10 +21,10 @@ public class AccessoryProperty : ScriptableObject
     public GameObject model;
 
     [Space]
-    public TransportType[] transportType;
+    public List<TransportType> transportType;
 
     [Space]
-    public AccessoriesTypes[] accessoryTypes;
+    public List<AccessoriesTypes> accessoryTypes;
 
     [Space]
     public UnitTag accessoryTag;
